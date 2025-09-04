@@ -70,4 +70,3 @@ pub enum DefaultActorError {
     #[error("Fatal: {0}")]
     Fatal(String),
 }
-

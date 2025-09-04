@@ -17,7 +17,7 @@ pub trait BaseHandlerTrait<A, S, M, R> {
 impl<A, S, I, O, E> BaseHandlerTrait<A, S, CallMessage<I, O>, Result<(), CallHandleError<E>>>
     for BaseHandler
 where
-    A: CallHandlerTrait<S, I, O, E> + Sync +  Send + 'static,
+    A: CallHandlerTrait<S, I, O, E> + Sync + Send + 'static,
     S: Send,
     I: Send + 'static,
     O: Send + 'static,
@@ -44,7 +44,7 @@ where
 }
 
 #[async_trait]
-impl<A, S, I, E> BaseHandlerTrait<A, S, TellMessage<I>, Result<(), E>> for BaseHandler 
+impl<A, S, I, E> BaseHandlerTrait<A, S, TellMessage<I>, Result<(), E>> for BaseHandler
 where
     A: TellHandlerTrait<S, I, E> + Sync + Send + 'static,
     S: Send,

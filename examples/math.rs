@@ -124,10 +124,16 @@ impl
         _: &mut ProxyActorState,
         msg: ProxyActorCalcRequest,
     ) -> Result<ProxyActorCalcResponse, DefaultActorError> {
-        self.tx.tell(Message::AddNumber, AddNumberRequest(msg.0)).await?;
+        self.tx
+            .tell(Message::AddNumber, AddNumberRequest(msg.0))
+            .await?;
 
-        self.tx.tell(Message::AddNumber, AddNumberRequest(5)).await?;
-        self.tx.tell(Message::SubNumber, SubNumberRequest(3)).await?;
+        self.tx
+            .tell(Message::AddNumber, AddNumberRequest(5))
+            .await?;
+        self.tx
+            .tell(Message::SubNumber, SubNumberRequest(3))
+            .await?;
 
         let result = self.tx.call(Message::GetNumber, GetNumberRequest).await?;
 
