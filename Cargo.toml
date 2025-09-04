@@ -1,0 +1,28 @@
+[package]
+name = "ctrfrmwrk"
+version = "0.1.0"
+edition = "2024"
+authors = ["sterrlia <dev@sterrlia.com>"]
+description = "A lightweight actor framework built on top of Tokio"
+repository = "https://github.com/sterrlia/ctrfrmwrk"
+documentation = "https://docs.rs/ctrfrmwrk"
+readme = "README.md"
+keywords = [
+    "actor",
+    "async",
+    "tokio",
+    "actor-model"
+]
+categories = [
+    "concurrency",
+    "asynchronous",
+    "rust-patterns"
+]
+license-file = "LICENSE"
+
+[dependencies]
+anyhow = "1.0.99"
+async-trait = "0.1.89"
+thiserror = "2.0.16"
+tokio = { version = "1.47.1", features = ["full"] }
+tracing = "0.1.41"
