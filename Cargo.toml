@@ -21,8 +21,11 @@ categories = [
 license-file = "LICENSE"
 
 [dependencies]
-anyhow = "1.0.99"
+tokio = { version = "1.47.1", features = ["full"] }
 async-trait = "0.1.89"
 thiserror = "2.0.16"
-tokio = { version = "1.47.1", features = ["full"] }
-tracing = "0.1.41"
+tracing = { version = "0.1.41", optional = true }
+
+[features]
+default = ["logs"]
+logs = ["tracing"]
