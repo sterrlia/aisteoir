@@ -1,4 +1,3 @@
-## Yet another actor framework
 ### Pros
 + Cleaner syntax for request-response pattern (you just implement CallHandlerTrait)
 + Async support
