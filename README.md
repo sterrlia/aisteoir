@@ -1,9 +1,9 @@
 ### Pros
-+ Cleaner syntax for request-response pattern (you just implement CallHandlerTrait)
++ Cleaner syntax for request-response pattern (you just implement `CallHandlerTrait`)
 + Async support
 + Handler errors can trigger actor stop, forced stop, or restart (behavior is customizable)
 + Was fun to develop
-+ No built-in child actor concept, but you can run actors within other actors and store their tx in the parent actor's state
++ No built-in child actor concept, but you can run actors within other actors and store their `tx` in the parent actor's state
 + No heavy macros
 + Strict typing
 
