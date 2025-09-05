@@ -15,14 +15,14 @@
 let first_actor = FirstActor {};
 let first_actor_tx = start_actor(actor, 100);
 
-first_actor_tx.tell(FirstActorMessage::SomeRequest, SomeRequest { number: 3 })
+first_actor_tx.tell(SomeRequest { number: 3 })
     .await?; // fire and forget
 
 let second_actor = SecondActor { tx };
 let second_actor_tx = start_actor(second_actor, 100);
 
 let result = second_actor_tx
-    .call(SecondActorMessage::Calc, SecondActorCalcRequest(10))
+    .call(SecondActorCalcRequest(10))
     .await?; // request-response
 
 println!("Result: {}", result.0);

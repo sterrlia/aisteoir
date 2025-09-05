@@ -124,18 +124,12 @@ impl
         _: &mut ProxyActorState,
         msg: ProxyActorCalcRequest,
     ) -> Result<ProxyActorCalcResponse, DefaultActorError> {
-        self.tx
-            .tell(Message::AddNumber, AddNumberRequest(msg.0))
-            .await?;
+        self.tx.tell(AddNumberRequest(msg.0)).await?;
 
-        self.tx
-            .tell(Message::AddNumber, AddNumberRequest(5))
-            .await?;
-        self.tx
-            .tell(Message::SubNumber, SubNumberRequest(3))
-            .await?;
+        self.tx.tell(AddNumberRequest(5)).await?;
+        self.tx.tell(SubNumberRequest(3)).await?;
 
-        let result = self.tx.call(Message::GetNumber, GetNumberRequest).await?;
+        let result = self.tx.call(GetNumberRequest).await?;
 
         Ok(ProxyActorCalcResponse(result.0))
     }
@@ -149,9 +143,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let another_actor = ProxyActor { tx };
     let another_tx = start_actor(another_actor, 100);
 
-    let result = another_tx
-        .call(ProxyActorMessage::Get, ProxyActorCalcRequest(10))
-        .await?;
+    let result = another_tx.call(ProxyActorCalcRequest(10)).await?;
 
     println!("Result: {}", result.0);
 

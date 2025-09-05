@@ -15,6 +15,10 @@ pub struct Sender<M> {
     pub tx: mpsc::Sender<ActorMessage<M>>,
 }
 
+pub trait MessageRequest<M> {
+    fn get_case() -> fn(Self) -> M;
+}
+
 impl<M> Sender<M>
 where
     M: Send,
@@ -32,26 +36,28 @@ where
         self.send(msg).await
     }
 
-    pub async fn tell<F, I>(&self, case: F, value: I) -> Result<(), ReceiverClosedError>
+    pub async fn tell<I>(&self, value: I) -> Result<(), ReceiverClosedError>
     where
         I: Send,
-        F: Send,
-        F: Fn(TellMessage<I>) -> M,
+        TellMessage<I>: MessageRequest<M>
     {
-        let msg = ActorMessage::ActorMessage(case(TellMessage(value)));
+        let tell_message = TellMessage(value);
+        let case = TellMessage::get_case();
+        let msg = ActorMessage::ActorMessage(case(tell_message));
 
         self.send(msg).await
     }
 
-    pub async fn call<F, I, O>(&self, case: F, value: I) -> Result<O, CallError>
+    pub async fn call<I, O>(&self, value: I) -> Result<O, CallError>
     where
         I: Send,
-        O: Send,
-        F: Send,
-        F: Fn(CallMessage<I, O>) -> M,
+        CallMessage<I, O>: MessageRequest<M>,
+        O: Send
     {
         let (result_tx, result_rx) = oneshot::channel();
-        let msg = ActorMessage::ActorMessage(case(CallMessage(value, result_tx)));
+        let call_message = CallMessage(value, result_tx);
+        let case = CallMessage::get_case();
+        let msg = ActorMessage::ActorMessage(case(call_message));
 
         self.send(msg).await.map_err(CallError::ReceiverClosed)?;
 
