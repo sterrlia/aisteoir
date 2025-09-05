@@ -10,9 +10,14 @@ pub struct CallMessage<I, O>(pub I, pub oneshot::Sender<Result<O, ReceiverHandle
 #[derive(Debug)]
 pub struct TellMessage<I>(pub I);
 
-#[derive(Clone)]
 pub struct Sender<M> {
     pub tx: mpsc::Sender<ActorMessage<M>>,
+}
+
+impl<M> Clone for Sender<M> {
+    fn clone(&self) -> Sender<M> {
+        Sender { tx: self.tx.clone() }
+    }
 }
 
 pub fn create_channel<M>(mailbox_size: usize) -> (Sender<M>, Receiver<M>) {

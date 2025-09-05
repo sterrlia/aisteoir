@@ -24,7 +24,6 @@ match_messages! {
     state: CalcState;
     error: DefaultActorError;
 
-
     Message {
         AddNumberRequest;
         SubNumberRequest;
@@ -140,6 +139,7 @@ impl
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let actor = CalcActor {};
     let (tx, rx) = create_channel(100);
+
     let another_actor = ProxyActor { tx };
     let (another_tx, another_rx) = create_channel(100);
 
