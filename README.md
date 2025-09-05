@@ -13,13 +13,15 @@
 ### Examples
 ``` rust
 let first_actor = FirstActor {};
-let first_actor_tx = start_actor(actor, 100);
+let (first_actor_tx, first_actor_rx) = create_channel(100);
+let second_actor = SecondActor { tx };
+let (second_actor_tx, second_actor_rx) = create_channel(100);
+
+start_actor(actor, first_actor_rx);
+start_actor(second_actor, second_actor_rx);
 
 first_actor_tx.tell(SomeRequest { number: 3 })
     .await?; // fire and forget
-
-let second_actor = SecondActor { tx };
-let second_actor_tx = start_actor(second_actor, 100);
 
 let result = second_actor_tx
     .call(SecondActorCalcRequest(10))

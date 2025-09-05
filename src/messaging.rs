@@ -15,6 +15,16 @@ pub struct Sender<M> {
     pub tx: mpsc::Sender<ActorMessage<M>>,
 }
 
+pub fn create_channel<M>(mailbox_size: usize) -> (Sender<M>, Receiver<M>) {
+    let (tx, rx) = mpsc::channel::<ActorMessage<M>>(mailbox_size);
+
+    (Sender { tx }, Receiver { rx })
+}
+
+pub struct Receiver<M> {
+    pub rx: mpsc::Receiver<ActorMessage<M>>,
+}
+
 pub trait MessageRequest<M> {
     fn get_case() -> fn(Self) -> M;
 }

@@ -1,8 +1,9 @@
 use aisteoir::{
-    channel::Sender,
     error::{ActorInitError, ActorStopError, DefaultActorError},
     handler::{CallHandlerTrait, TellHandlerTrait},
     match_messages,
+    messaging::Sender,
+    messaging::create_channel,
     supervision::{ActorTrait, start_actor},
 };
 use async_trait::async_trait;
@@ -138,10 +139,12 @@ impl
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let actor = CalcActor {};
-    let tx = start_actor(actor, 100);
-
+    let (tx, rx) = create_channel(100);
     let another_actor = ProxyActor { tx };
-    let another_tx = start_actor(another_actor, 100);
+    let (another_tx, another_rx) = create_channel(100);
+
+    start_actor(actor, rx);
+    start_actor(another_actor, another_rx);
 
     let result = another_tx.call(ProxyActorCalcRequest(10)).await?;
 

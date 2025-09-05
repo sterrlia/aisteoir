@@ -4,13 +4,13 @@ use async_trait::async_trait;
 use tokio::sync::mpsc;
 
 use crate::{
-    channel::Sender,
     error::{
         ActorInitError, ActorStopError, CallError, DefaultActorError, HandleError,
         ReceiverClosedError,
     },
     handler::ActorMessageHandlerTrait,
     logging,
+    messaging::Receiver,
 };
 
 pub enum CommandMessage {
@@ -33,22 +33,18 @@ where
     async fn on_stop(&self, mut state: S) -> Result<(), ActorStopError>;
 }
 
-pub fn start_actor<A, S, M, E>(actor: A, mailbox_size: usize) -> Sender<M>
+pub fn start_actor<A, S, M, E>(actor: A, rx: Receiver<M>)
 where
     S: Send + 'static,
     M: Send + 'static,
     A: ActorMessageHandlerTrait<S, M, E> + ActorTrait<S> + Send + 'static,
     E: Into<CommandMessage> + Debug + Display,
 {
-    let (tx, rx) = mpsc::channel::<ActorMessage<M>>(mailbox_size);
-
     tokio::spawn(async move {
-        run_actor_loop(actor, rx).await;
+        run_actor_loop(actor, rx.rx).await;
 
         logging::info("Actor task finished - channel closed".to_string());
     });
-
-    Sender { tx }
 }
 
 async fn run_actor_loop<A, S, M, E>(actor: A, mut rx: mpsc::Receiver<ActorMessage<M>>)

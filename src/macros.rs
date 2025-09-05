@@ -37,7 +37,7 @@ macro_rules! match_messages {
         }
 
         $(
-            impl $crate::channel::MessageRequest<$msg_enum> for match_messages!(@wrap $req $(, $resp)?) {
+            impl $crate::messaging::MessageRequest<$msg_enum> for match_messages!(@wrap $req $(, $resp)?) {
                 fn get_case() -> fn(Self) -> $msg_enum {
                     $msg_enum::$req
                 }
@@ -47,9 +47,9 @@ macro_rules! match_messages {
 
     // Helper to wrap messages: if -> Resp is provided, use CallMessage<Req, Resp>
     (@wrap $req:ty, $resp:ty) => {
-        $crate::channel::CallMessage<$req, $resp>
+        $crate::messaging::CallMessage<$req, $resp>
     };
     (@wrap $req:ty) => {
-        $crate::channel::TellMessage<$req>
+        $crate::messaging::TellMessage<$req>
     };
 }

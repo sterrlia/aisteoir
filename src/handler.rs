@@ -1,8 +1,8 @@
 use std::fmt::Debug;
 
 use crate::{
-    channel::{CallMessage, TellMessage},
     error::{CallHandleError, HandleError, ReceiverHandleError},
+    messaging::{CallMessage, TellMessage},
 };
 use async_trait::async_trait;
 
