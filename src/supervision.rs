@@ -10,6 +10,7 @@ use crate::{
         ReceiverClosedError,
     },
     handler::ActorMessageHandlerTrait,
+    logging,
 };
 
 pub enum CommandMessage {
@@ -44,7 +45,7 @@ where
     tokio::spawn(async move {
         run_actor_loop(actor, rx).await;
 
-        tracing::info!("Actor task finished - channel closed");
+        logging::info("Actor task finished - channel closed".to_string());
     });
 
     Sender { tx }
@@ -60,7 +61,7 @@ where
     let mut state = match actor.init().await {
         Ok(value) => value,
         Err(error) => {
-            tracing::error!("Actor startup error: {:?}", error);
+            logging::error(format!("Actor startup error: {:?}", error));
 
             return;
         }
@@ -76,12 +77,12 @@ where
                     Ok(_) => None,
                     Err(err) => Some(match err {
                         HandleError::CallHandleError(call_handle_error) => {
-                            tracing::error!("Call handle error: {}", call_handle_error);
+                            logging::error(format!("Call handle error: {}", call_handle_error));
 
                             CommandMessage::StopActor
                         }
                         HandleError::TellHandleError(error) => {
-                            tracing::error!("Tell handle error: {}", error);
+                            logging::error(format!("Tell handle error: {}", error));
 
                             error.into()
                         }
@@ -98,13 +99,13 @@ where
                 }
                 CommandMessage::RestartActor => {
                     if let Err(error) = actor.on_stop(state).await {
-                        tracing::error!("Actor restart stop hook error: {}", error);
+                        logging::error(format!("Actor restart stop hook error: {}", error));
                     }
 
                     state = match actor.init().await {
                         Ok(value) => value,
                         Err(error) => {
-                            tracing::error!("Actor restart init error: {}", error);
+                            logging::error(format!("Actor restart init error: {}", error));
 
                             return;
                         }
@@ -115,7 +116,7 @@ where
     }
 
     if let Err(error) = actor.on_stop(state).await {
-        tracing::error!("Actor stop error: {:?}", error);
+        logging::error(format!("Actor stop error: {:?}", error));
     }
 }
 

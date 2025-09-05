@@ -21,11 +21,11 @@ categories = [
 license-file = "LICENSE"
 
 [dependencies]
-tokio = { version = "1.47.1", features = ["full"] }
+tokio = { version = "1.47.1", features = ["sync", "rt-multi-thread", "macros"] }
 async-trait = "0.1.89"
 thiserror = "2.0.16"
 tracing = { version = "0.1.41", optional = true }
 
 [features]
-default = ["logs"]
-logs = ["tracing"]
+default = ["tracing"]
+tracing = ["dep:tracing", "tokio/tracing"]
