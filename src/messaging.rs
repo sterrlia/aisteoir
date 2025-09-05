@@ -16,7 +16,9 @@ pub struct Sender<M> {
 
 impl<M> Clone for Sender<M> {
     fn clone(&self) -> Sender<M> {
-        Sender { tx: self.tx.clone() }
+        Sender {
+            tx: self.tx.clone(),
+        }
     }
 }
 
