@@ -1,6 +1,6 @@
 [package]
 name = "aisteoir"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 authors = ["sterrlia <dev@sterrlia.com>"]
 description = "A lightweight actor framework built on top of Tokio"
