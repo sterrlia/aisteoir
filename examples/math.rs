@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use ctrfrmwrk::{
+use aisteoir::{
     channel::Sender,
     error::{ActorInitError, ActorStopError, DefaultActorError},
     handler::{CallHandlerTrait, TellHandlerTrait},

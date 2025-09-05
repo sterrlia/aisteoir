@@ -1,11 +1,11 @@
 [package]
-name = "ctrfrmwrk"
+name = "aisteoir"
 version = "0.1.0"
 edition = "2024"
 authors = ["sterrlia <dev@sterrlia.com>"]
 description = "A lightweight actor framework built on top of Tokio"
-repository = "https://github.com/sterrlia/ctrfrmwrk"
-documentation = "https://docs.rs/ctrfrmwrk"
+repository = "https://github.com/sterrlia/aisteoir"
+documentation = "https://docs.rs/aisteoir"
 readme = "README.md"
 keywords = [
     "actor",
