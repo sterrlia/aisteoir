@@ -39,7 +39,7 @@ where
     pub async fn tell<I>(&self, value: I) -> Result<(), ReceiverClosedError>
     where
         I: Send,
-        TellMessage<I>: MessageRequest<M>
+        TellMessage<I>: MessageRequest<M>,
     {
         let tell_message = TellMessage(value);
         let case = TellMessage::get_case();
@@ -52,7 +52,7 @@ where
     where
         I: Send,
         CallMessage<I, O>: MessageRequest<M>,
-        O: Send
+        O: Send,
     {
         let (result_tx, result_rx) = oneshot::channel();
         let call_message = CallMessage(value, result_tx);
