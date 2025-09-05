@@ -1,4 +1,3 @@
-use async_trait::async_trait;
 use aisteoir::{
     channel::Sender,
     error::{ActorInitError, ActorStopError, DefaultActorError},
@@ -6,6 +5,7 @@ use aisteoir::{
     match_messages,
     supervision::{ActorTrait, start_actor},
 };
+use async_trait::async_trait;
 
 pub struct CalcActor {}
 
