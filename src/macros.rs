@@ -8,14 +8,14 @@ macro_rules! match_messages {
         $(#[$meta:meta])*
         $msg_enum:ident {
             $(
-                $variant:ident($req:ty) $(-> $resp:ty)?;
+                $req:ident $(-> $resp:ty)?;
             )*
         }
     ) => {
         $(#[$meta])*
         pub enum $msg_enum {
             $(
-                $variant(
+                $req(
                     match_messages!(@wrap $req $(, $resp)?)
                 )
             ),*
@@ -28,7 +28,7 @@ macro_rules! match_messages {
 
                 match msg {
                     $(
-                        $msg_enum::$variant(inner) => {
+                        $msg_enum::$req(inner) => {
                             $crate::handler::BaseHandler::_handle(self, state, inner).await.map_err(|err| err.into())
                         }
                     ),*
@@ -39,7 +39,7 @@ macro_rules! match_messages {
         $(
             impl $crate::channel::MessageRequest<$msg_enum> for match_messages!(@wrap $req $(, $resp)?) {
                 fn get_case() -> fn(Self) -> $msg_enum {
-                    $msg_enum::$variant
+                    $msg_enum::$req
                 }
             }
         )*

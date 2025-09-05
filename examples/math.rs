@@ -25,9 +25,9 @@ match_messages! {
 
 
     Message {
-        AddNumber(AddNumberRequest);
-        SubNumber(SubNumberRequest);
-        GetNumber(GetNumberRequest) -> GetNumberResponse;
+        AddNumberRequest;
+        SubNumberRequest;
+        GetNumberRequest -> GetNumberResponse;
     }
 }
 
@@ -95,7 +95,7 @@ match_messages! {
 
 
     ProxyActorMessage {
-        Get(ProxyActorCalcRequest) -> ProxyActorCalcResponse;
+        ProxyActorCalcRequest -> ProxyActorCalcResponse;
     }
 }
 
