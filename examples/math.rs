@@ -1,9 +1,9 @@
 use aisteoir::{
-    error::{ActorInitError, ActorStopError, DefaultActorError},
+    error::{ActorInitError, ActorStopError, DefaultHandleError},
     handler::{CallHandlerTrait, TellHandlerTrait},
     match_messages,
     messaging::Sender,
-    messaging::create_channel,
+    messaging::channel,
     supervision::{ActorTrait, start_actor},
 };
 use async_trait::async_trait;
@@ -22,7 +22,7 @@ pub struct GetNumberResponse(i32);
 match_messages! {
     actor: CalcActor;
     state: CalcState;
-    error: DefaultActorError;
+    error: DefaultHandleError;
 
     Message {
         AddNumberRequest;
@@ -43,37 +43,37 @@ impl ActorTrait<CalcState> for CalcActor {
 }
 
 #[async_trait]
-impl CallHandlerTrait<CalcState, GetNumberRequest, GetNumberResponse, DefaultActorError>
+impl CallHandlerTrait<CalcState, GetNumberRequest, GetNumberResponse, DefaultHandleError>
     for CalcActor
 {
     async fn handle(
         &self,
         state: &mut CalcState,
         _: GetNumberRequest,
-    ) -> Result<GetNumberResponse, DefaultActorError> {
+    ) -> Result<GetNumberResponse, DefaultHandleError> {
         Ok(GetNumberResponse(state.number))
     }
 }
 
 #[async_trait]
-impl TellHandlerTrait<CalcState, AddNumberRequest, DefaultActorError> for CalcActor {
+impl TellHandlerTrait<CalcState, AddNumberRequest, DefaultHandleError> for CalcActor {
     async fn handle(
         &self,
         state: &mut CalcState,
         msg: AddNumberRequest,
-    ) -> Result<(), DefaultActorError> {
+    ) -> Result<(), DefaultHandleError> {
         state.number += msg.0;
         Ok(())
     }
 }
 
 #[async_trait]
-impl TellHandlerTrait<CalcState, SubNumberRequest, DefaultActorError> for CalcActor {
+impl TellHandlerTrait<CalcState, SubNumberRequest, DefaultHandleError> for CalcActor {
     async fn handle(
         &self,
         state: &mut CalcState,
         msg: SubNumberRequest,
-    ) -> Result<(), DefaultActorError> {
+    ) -> Result<(), DefaultHandleError> {
         state.number -= msg.0;
         Ok(())
     }
@@ -91,7 +91,7 @@ pub struct ProxyActorCalcResponse(i32);
 match_messages! {
     actor: ProxyActor;
     state: ProxyActorState;
-    error: DefaultActorError;
+    error: DefaultHandleError;
 
 
     ProxyActorMessage {
@@ -116,14 +116,14 @@ impl
         ProxyActorState,
         ProxyActorCalcRequest,
         ProxyActorCalcResponse,
-        DefaultActorError,
+        DefaultHandleError,
     > for ProxyActor
 {
     async fn handle(
         &self,
         _: &mut ProxyActorState,
         msg: ProxyActorCalcRequest,
-    ) -> Result<ProxyActorCalcResponse, DefaultActorError> {
+    ) -> Result<ProxyActorCalcResponse, DefaultHandleError> {
         self.tx.tell(AddNumberRequest(msg.0)).await?;
 
         self.tx.tell(AddNumberRequest(5)).await?;
@@ -138,10 +138,10 @@ impl
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let actor = CalcActor {};
-    let (tx, rx) = create_channel(100);
+    let (tx, rx) = channel(100);
 
     let another_actor = ProxyActor { tx };
-    let (another_tx, another_rx) = create_channel(100);
+    let (another_tx, another_rx) = channel(100);
 
     tokio::spawn(start_actor(actor, rx));
     tokio::spawn(start_actor(another_actor, another_rx));

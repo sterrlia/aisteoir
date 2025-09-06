@@ -5,12 +5,14 @@ use crate::{
     supervision::{ActorMessage, CommandMessage},
 };
 
+#[doc(hidden)]
 #[derive(Debug)]
 pub struct CallMessage<I, O> {
     pub request: I,
     pub tx: oneshot::Sender<Result<O, ReceiverHandleError>>,
 }
 
+#[doc(hidden)]
 #[derive(Debug)]
 pub struct TellMessage<I>(pub I);
 
@@ -26,7 +28,7 @@ impl<M> Clone for Sender<M> {
     }
 }
 
-pub fn create_channel<M>(mailbox_size: usize) -> (Sender<M>, Receiver<M>) {
+pub fn channel<M>(mailbox_size: usize) -> (Sender<M>, Receiver<M>) {
     let (tx, rx) = mpsc::channel::<ActorMessage<M>>(mailbox_size);
 
     (Sender { tx }, Receiver { rx })

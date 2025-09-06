@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 
 use crate::{
     error::{CallHandleError, HandleError, ReceiverHandleError},
@@ -23,7 +23,7 @@ where
     S: Send,
     I: Send + 'static,
     O: Send + 'static,
-    E: Debug,
+    E: Display + Debug,
 {
     async fn _handle(
         actor: &A,
@@ -49,7 +49,7 @@ where
     A: TellHandlerTrait<S, I, E> + Sync + Send + 'static,
     S: Send,
     I: Send + 'static,
-    E: Debug,
+    E: Display + Debug,
 {
     async fn _handle(actor: &A, state: &mut S, msg: TellMessage<I>) -> Result<(), E> {
         actor.handle(state, msg.0).await
@@ -62,7 +62,7 @@ where
     S: Send,
     I: Send + 'static,
     O: Send + 'static,
-    E: Debug,
+    E: Display + Debug,
 {
     async fn handle(&self, state: &mut S, msg: I) -> Result<O, E>;
 }
@@ -80,7 +80,7 @@ where
 #[async_trait]
 pub trait ActorMessageHandlerTrait<S, M, E>
 where
-    E: Debug,
+    E: Display + Debug,
 {
     async fn __handle(&self, state: &mut S, msg: M) -> Result<(), HandleError<E>>;
 }

@@ -4,10 +4,7 @@ use async_trait::async_trait;
 use tokio::sync::mpsc;
 
 use crate::{
-    error::{
-        ActorInitError, ActorStopError, CallError, DefaultActorError, HandleError,
-        ReceiverClosedError,
-    },
+    error::{ActorInitError, ActorStopError, DefaultHandleError, HandleError},
     handler::ActorMessageHandlerTrait,
     logging,
     messaging::Receiver,
@@ -19,6 +16,7 @@ pub enum CommandMessage {
     RestartActor,
 }
 
+#[doc(hidden)]
 pub enum ActorMessage<M> {
     CommandMessage(CommandMessage),
     ActorMessage(M),
@@ -55,7 +53,7 @@ where
     let mut state = match actor.init().await {
         Ok(value) => value,
         Err(error) => {
-            logging::error(format!("Actor startup error: {:?}", error));
+            logging::error(format!("Actor startup error: {error}"));
 
             return;
         }
@@ -70,13 +68,13 @@ where
                 match result {
                     Ok(_) => None,
                     Err(err) => Some(match err {
-                        HandleError::CallHandleError(call_handle_error) => {
-                            logging::error(format!("Call handle error: {}", call_handle_error));
+                        HandleError::CallHandleError(error) => {
+                            logging::error(format!("Call handle error: {error}"));
 
                             CommandMessage::StopActor
                         }
                         HandleError::TellHandleError(error) => {
-                            logging::error(format!("Tell handle error: {}", error));
+                            logging::error(format!("Tell handle error: {error}"));
 
                             error.into()
                         }
@@ -93,13 +91,13 @@ where
                 }
                 CommandMessage::RestartActor => {
                     if let Err(error) = actor.on_stop(state).await {
-                        logging::error(format!("Actor restart stop hook error: {}", error));
+                        logging::error(format!("Actor restart stop hook error: {error}"));
                     }
 
                     state = match actor.init().await {
                         Ok(value) => value,
                         Err(error) => {
-                            logging::error(format!("Actor restart init error: {}", error));
+                            logging::error(format!("Actor restart init error: {error}"));
 
                             return;
                         }
@@ -110,24 +108,12 @@ where
     }
 
     if let Err(error) = actor.on_stop(state).await {
-        logging::error(format!("Actor stop error: {:?}", error));
+        logging::error(format!("Actor stop error: {error}"));
     }
 }
 
-impl From<DefaultActorError> for CommandMessage {
-    fn from(_: DefaultActorError) -> Self {
+impl From<DefaultHandleError> for CommandMessage {
+    fn from(_: DefaultHandleError) -> Self {
         CommandMessage::StopActor
-    }
-}
-
-impl From<CallError> for DefaultActorError {
-    fn from(value: CallError) -> Self {
-        DefaultActorError::Fatal(value.to_string())
-    }
-}
-
-impl From<ReceiverClosedError> for DefaultActorError {
-    fn from(value: ReceiverClosedError) -> Self {
-        DefaultActorError::Fatal(value.to_string())
     }
 }

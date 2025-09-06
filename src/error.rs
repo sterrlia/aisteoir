@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::fmt::{self, Debug};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -17,6 +17,7 @@ pub enum CallError {
     ReceiverHandleError(ReceiverHandleError),
 }
 
+#[doc(hidden)]
 #[derive(Error, Debug)]
 pub enum CallHandleError<E>
 where
@@ -30,6 +31,7 @@ where
     Handle(E),
 }
 
+#[doc(hidden)]
 #[derive(Error, Debug)]
 pub enum HandleError<E>
 where
@@ -66,7 +68,34 @@ pub struct ActorInitError(String);
 pub struct ActorStopError(String);
 
 #[derive(Error, Debug)]
-pub enum DefaultActorError {
-    #[error("Fatal: {0}")]
-    Fatal(String),
+#[error("Fatal error {source}")]
+pub struct FatalError {
+    #[source]
+    source: Box<dyn std::error::Error + Send + Sync>
+}
+
+#[derive(Debug)]
+pub enum DefaultHandleError {
+    Fatal(FatalError),
+}
+
+impl fmt::Display for DefaultHandleError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            DefaultHandleError::Fatal(inner) => write!(f, "{inner}"),
+        }
+    }
+}
+
+impl<E> From<E> for DefaultHandleError
+where
+    E: std::error::Error + Send + Sync + 'static,
+{
+    fn from(value: E) -> Self {
+        let error = FatalError {
+            source: Box::new(value)
+        };
+
+        DefaultHandleError::Fatal(error)
+    }
 }
