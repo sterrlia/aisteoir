@@ -71,7 +71,7 @@ pub struct ActorStopError(String);
 #[error("Fatal error {source}")]
 pub struct FatalError {
     #[source]
-    source: Box<dyn std::error::Error + Send + Sync>
+    source: Box<dyn std::error::Error + Send + Sync>,
 }
 
 #[derive(Debug)]
@@ -93,7 +93,7 @@ where
 {
     fn from(value: E) -> Self {
         let error = FatalError {
-            source: Box::new(value)
+            source: Box::new(value),
         };
 
         DefaultHandleError::Fatal(error)
