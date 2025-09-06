@@ -33,18 +33,16 @@ where
     async fn on_stop(&self, mut state: S) -> Result<(), ActorStopError>;
 }
 
-pub fn start_actor<A, S, M, E>(actor: A, rx: Receiver<M>)
+pub async fn start_actor<A, S, M, E>(actor: A, rx: Receiver<M>)
 where
     S: Send + 'static,
     M: Send + 'static,
     A: ActorMessageHandlerTrait<S, M, E> + ActorTrait<S> + Send + 'static,
     E: Into<CommandMessage> + Debug + Display,
 {
-    tokio::spawn(async move {
-        run_actor_loop(actor, rx.rx).await;
+    run_actor_loop(actor, rx.rx).await;
 
-        logging::info("Actor task finished - channel closed".to_string());
-    });
+    logging::info("Actor task finished - channel closed".to_string());
 }
 
 async fn run_actor_loop<A, S, M, E>(actor: A, mut rx: mpsc::Receiver<ActorMessage<M>>)

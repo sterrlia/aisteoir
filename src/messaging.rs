@@ -6,7 +6,11 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub struct CallMessage<I, O>(pub I, pub oneshot::Sender<Result<O, ReceiverHandleError>>);
+pub struct CallMessage<I, O> {
+    pub request: I,
+    pub tx: oneshot::Sender<Result<O, ReceiverHandleError>>,
+}
+
 #[derive(Debug)]
 pub struct TellMessage<I>(pub I);
 
@@ -72,7 +76,10 @@ where
         O: Send,
     {
         let (result_tx, result_rx) = oneshot::channel();
-        let call_message = CallMessage(value, result_tx);
+        let call_message = CallMessage {
+            request: value,
+            tx: result_tx,
+        };
         let case = CallMessage::get_case();
         let msg = ActorMessage::ActorMessage(case(call_message));
 

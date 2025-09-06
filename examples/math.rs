@@ -143,8 +143,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let another_actor = ProxyActor { tx };
     let (another_tx, another_rx) = create_channel(100);
 
-    start_actor(actor, rx);
-    start_actor(another_actor, another_rx);
+    tokio::spawn(start_actor(actor, rx));
+    tokio::spawn(start_actor(another_actor, another_rx));
 
     let result = another_tx.call(ProxyActorCalcRequest(10)).await?;
 
