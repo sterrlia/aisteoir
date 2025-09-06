@@ -44,13 +44,13 @@ pub trait MessageRequest<M> {
 
 impl<M> Sender<M>
 where
-    M: Send,
+    M: Send + Sync + 'static,
 {
     async fn send(&self, msg: ActorMessage<M>) -> Result<(), ReceiverClosedError> {
         self.tx
             .send(msg)
             .await
-            .map_err(|err| ReceiverClosedError(err.to_string()))
+            .map_err(|err| ReceiverClosedError::new(Box::new(err)))
     }
 
     pub async fn command(&self, command: CommandMessage) -> Result<(), ReceiverClosedError> {
@@ -89,7 +89,7 @@ where
 
         result_rx
             .await
-            .map_err(|err| CallError::ReceiverClosed(ReceiverClosedError(err.to_string())))?
+            .map_err(|err| CallError::ReceiverClosed(ReceiverClosedError::new(Box::new(err))))?
             .map_err(CallError::ReceiverHandleError)
     }
 }

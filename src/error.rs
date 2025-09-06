@@ -3,7 +3,13 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 #[error("Receiver closed: {0}")]
-pub struct ReceiverClosedError(pub String);
+pub struct ReceiverClosedError(#[source] Box<dyn std::error::Error + Send + Sync>);
+
+impl ReceiverClosedError {
+    pub fn new(source: Box<dyn std::error::Error + Send + Sync>) -> Self {
+        Self(source)
+    }
+}
 
 #[derive(Error, Debug)]
 #[error("Receiver handle error")]
@@ -61,18 +67,49 @@ where
 
 #[derive(Error, Debug)]
 #[error("Actor init error: {0}")]
-pub struct ActorInitError(String);
+struct ActorInitErrorContainer(#[source] Box<dyn std::error::Error + Send + Sync>);
+pub struct ActorInitError(ActorInitErrorContainer);
+
+impl<E> From<E> for ActorInitError
+where
+    E: std::error::Error + Send + Sync + 'static,
+{
+    fn from(value: E) -> Self {
+        let container = ActorInitErrorContainer(Box::new(value));
+        ActorInitError(container)
+    }
+}
+
+impl fmt::Display for ActorInitError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 #[derive(Error, Debug)]
 #[error("Actor stop error: {0}")]
-pub struct ActorStopError(String);
+struct ActorStopErrorContainer(#[source] Box<dyn std::error::Error + Send + Sync>);
+pub struct ActorStopError(ActorStopErrorContainer);
+
+impl<E> From<E> for ActorStopError
+where
+    E: std::error::Error + Send + Sync + 'static,
+{
+    fn from(value: E) -> Self {
+        let container = ActorStopErrorContainer(Box::new(value));
+        ActorStopError(container)
+    }
+}
+
+impl fmt::Display for ActorStopError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 #[derive(Error, Debug)]
-#[error("Fatal error {source}")]
-pub struct FatalError {
-    #[source]
-    source: Box<dyn std::error::Error + Send + Sync>,
-}
+#[error("Fatal error {0}")]
+pub struct FatalError(#[source] Box<dyn std::error::Error + Send + Sync>);
 
 #[derive(Debug)]
 pub enum DefaultHandleError {
@@ -92,9 +129,7 @@ where
     E: std::error::Error + Send + Sync + 'static,
 {
     fn from(value: E) -> Self {
-        let error = FatalError {
-            source: Box::new(value),
-        };
+        let error = FatalError(Box::new(value));
 
         DefaultHandleError::Fatal(error)
     }
