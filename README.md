@@ -4,7 +4,7 @@
 [![Dependency Status](https://deps.rs/crate/aisteoir/latest/status.svg)](https://deps.rs/crate/aisteoir)
 ![Minimum Supported Rust Version](https://img.shields.io/badge/rustc-1.85.1+-ab6000.svg)
 
-A lightweight actor framework
+Async runtime-agnostic actor framework
 
 ### Features
 + Clean syntax for request-response pattern (you just implement `CallHandlerTrait`)
