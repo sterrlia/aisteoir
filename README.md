@@ -1,14 +1,17 @@
-### Pros
-+ Cleaner syntax for request-response pattern (you just implement `CallHandlerTrait`)
+[![crates.io version](https://img.shields.io/crates/v/aisteoir.svg)](https://crates.io/crates/aisteoir)
+[![docs.rs docs](https://docs.rs/aisteoir/badge.svg)](https://docs.rs/aisteoir)
+[![crates.io version](https://img.shields.io/crates/l/aisteoir.svg)](https://github.com/sterrlia/aisteoir/blob/master/LICENSE)
+[![CI build](https://github.com/sterrlia/aisteoir/actions/workflows/rust.yml/badge.svg)](https://github.com/sterrlia/aisteoir/actions)
+
+A lightweight actor framework
+
+### Features
++ Clean syntax for request-response pattern (you just implement `CallHandlerTrait`)
 + Async support
 + Handler errors can trigger actor stop, forced stop, or restart (behavior is customizable)
-+ Was fun to develop
 + No built-in child actor concept, but you can run actors within other actors and store their `tx` in the parent actor's state
 + No heavy macros
 + Strict typing
-
-### Cons
-- No one will use it except me
 
 ### Examples
 ``` rust
@@ -21,7 +24,7 @@ start_actor(actor, first_actor_rx);
 start_actor(second_actor, second_actor_rx);
 
 first_actor_tx.tell(SomeRequest { number: 3 })
-    .await?; // fire and forget
+    .await?; // fire-and-forget
 
 let result = second_actor_tx
     .call(SecondActorCalcRequest(10))
