@@ -1,5 +1,3 @@
-use tokio::sync::{mpsc, oneshot};
-
 use crate::{
     error::{CallError, ReceiverClosedError, ReceiverHandleError},
     supervision::{ActorMessage, CommandMessage},
@@ -17,7 +15,7 @@ pub struct CallMessage<I, O> {
 pub struct TellMessage<I>(pub I);
 
 pub struct Sender<M> {
-    pub tx: mpsc::Sender<ActorMessage<M>>,
+    pub tx: async_channel::Sender<ActorMessage<M>>,
 }
 
 impl<M> Clone for Sender<M> {
@@ -29,13 +27,13 @@ impl<M> Clone for Sender<M> {
 }
 
 pub fn channel<M>(mailbox_size: usize) -> (Sender<M>, Receiver<M>) {
-    let (tx, rx) = mpsc::channel::<ActorMessage<M>>(mailbox_size);
+    let (tx, rx) = async_channel::bounded::<ActorMessage<M>>(mailbox_size);
 
     (Sender { tx }, Receiver { rx })
 }
 
 pub struct Receiver<M> {
-    pub rx: mpsc::Receiver<ActorMessage<M>>,
+    pub rx: async_channel::Receiver<ActorMessage<M>>,
 }
 
 pub trait MessageRequest<M> {

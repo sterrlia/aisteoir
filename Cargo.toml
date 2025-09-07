@@ -22,10 +22,14 @@ license-file = "LICENSE"
 rust-version = "1.85.1"
 
 [dependencies]
-tokio = { version = "1.47.1", features = ["sync", "rt-multi-thread", "macros"] }
 async-trait = "0.1.89"
 thiserror = "2.0.16"
 tracing = { version = "0.1.41", optional = true }
+async-channel = "2.5.0"
+oneshot = "0.1.11"
+
+[dev-dependencies]
+tokio = { version = "1.47.1", features = ["sync", "rt-multi-thread", "macros"] }
 
 [features]
 default = ["tracing"]

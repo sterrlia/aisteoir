@@ -1,7 +1,5 @@
-use std::fmt::{Debug, Display};
-
 use async_trait::async_trait;
-use tokio::sync::mpsc;
+use std::fmt::{Debug, Display};
 
 use crate::{
     error::{ActorInitError, ActorStopError, DefaultHandleError, HandleError},
@@ -43,7 +41,7 @@ where
     logging::info("Actor task finished - channel closed".to_string());
 }
 
-async fn run_actor_loop<A, S, M, E>(actor: A, mut rx: mpsc::Receiver<ActorMessage<M>>)
+async fn run_actor_loop<A, S, M, E>(actor: A, rx: async_channel::Receiver<ActorMessage<M>>)
 where
     S: Send + 'static,
     M: Send + 'static,
@@ -59,7 +57,15 @@ where
         }
     };
 
-    while let Some(msg) = rx.recv().await {
+    loop {
+        let msg = match rx.recv().await {
+            Ok(msg) => msg,
+            Err(err) => {
+                logging::error(format!("Recv error: {err}"));
+                break;
+            }
+        };
+
         let command_result = match msg {
             ActorMessage::CommandMessage(command) => Some(command),
             ActorMessage::ActorMessage(actor_msg) => {
@@ -85,7 +91,9 @@ where
 
         if let Some(command) = command_result {
             match command {
-                CommandMessage::StopActor => rx.close(),
+                CommandMessage::StopActor => {
+                    rx.close();
+                }
                 CommandMessage::ForceStopActor => {
                     return;
                 }
