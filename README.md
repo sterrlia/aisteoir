@@ -1,6 +1,7 @@
 [![crates.io version](https://img.shields.io/crates/v/aisteoir.svg)](https://crates.io/crates/aisteoir)
 [![docs.rs docs](https://docs.rs/aisteoir/badge.svg)](https://docs.rs/aisteoir)
 [![CI build](https://github.com/sterrlia/aisteoir/actions/workflows/rust.yml/badge.svg)](https://github.com/sterrlia/aisteoir/actions)
+[![Dependency Status](https://deps.rs/crate/aisteoir/latest/status.svg)](https://deps.rs/crate/aisteoir)
 
 A lightweight actor framework
 
