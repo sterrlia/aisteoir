@@ -19,6 +19,7 @@ categories = [
     "rust-patterns"
 ]
 license-file = "LICENSE"
+rust-version = "1.85.1"
 
 [dependencies]
 tokio = { version = "1.47.1", features = ["sync", "rt-multi-thread", "macros"] }
