@@ -42,4 +42,4 @@ jobs:
         cargo msrv --version
 
     - name: Verify rust version
-      run: cargo msrv verify --output-format json
+      run: cargo msrv verify --output-format json --all-features
