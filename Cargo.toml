@@ -1,11 +1,11 @@
 [package]
-name = "aisteoir"
+name = "ascolt"
 version = "0.1.2"
 edition = "2024"
 authors = ["sterrlia <dev@sterrlia.com>"]
 description = "Async runtime-agnostic actor framework"
-repository = "https://github.com/sterrlia/aisteoir"
-documentation = "https://docs.rs/aisteoir"
+repository = "https://github.com/sterrlia/ascolt"
+documentation = "https://docs.rs/ascolt"
 readme = "README.md"
 keywords = [
     "actor",

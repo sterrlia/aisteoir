@@ -1,4 +1,4 @@
-use aisteoir::{
+use ascolt::{
     error::{ActorInitError, ActorStopError, DefaultHandleError},
     handler::{CallHandlerTrait, TellHandlerTrait},
     match_messages,

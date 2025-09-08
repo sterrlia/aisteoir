@@ -1,7 +1,7 @@
-[![crates.io version](https://img.shields.io/crates/v/aisteoir.svg)](https://crates.io/crates/aisteoir)
-[![docs.rs docs](https://docs.rs/aisteoir/badge.svg)](https://docs.rs/aisteoir)
-[![CI build](https://github.com/sterrlia/aisteoir/actions/workflows/rust.yml/badge.svg)](https://github.com/sterrlia/aisteoir/actions)
-[![Dependency Status](https://deps.rs/crate/aisteoir/latest/status.svg)](https://deps.rs/crate/aisteoir)
+[![crates.io version](https://img.shields.io/crates/v/ascolt.svg)](https://crates.io/crates/ascolt)
+[![docs.rs docs](https://docs.rs/ascolt/badge.svg)](https://docs.rs/ascolt)
+[![CI build](https://github.com/sterrlia/ascolt/actions/workflows/rust.yml/badge.svg)](https://github.com/sterrlia/ascolt/actions)
+[![Dependency Status](https://deps.rs/crate/ascolt/latest/status.svg)](https://deps.rs/crate/ascolt)
 ![Minimum Supported Rust Version](https://img.shields.io/badge/rustc-1.85.1+-ab6000.svg)
 
 Async runtime-agnostic actor framework
