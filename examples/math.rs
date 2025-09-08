@@ -1,9 +1,9 @@
 use ascolt::{
     error::{ActorInitError, ActorStopError, DefaultHandleError},
-    handler::{CallHandlerTrait, TellHandlerTrait},
+    handler::{AskHandlerTrait, TellHandlerTrait},
     match_messages,
     messaging::Sender,
-    messaging::channel,
+    messaging::bounded_channel,
     supervision::{ActorTrait, start_actor},
 };
 use async_trait::async_trait;
@@ -43,7 +43,7 @@ impl ActorTrait<CalcState> for CalcActor {
 }
 
 #[async_trait]
-impl CallHandlerTrait<CalcState, GetNumberRequest, GetNumberResponse, DefaultHandleError>
+impl AskHandlerTrait<CalcState, GetNumberRequest, GetNumberResponse, DefaultHandleError>
     for CalcActor
 {
     async fn handle(
@@ -112,7 +112,7 @@ impl ActorTrait<ProxyActorState> for ProxyActor {
 
 #[async_trait]
 impl
-    CallHandlerTrait<
+    AskHandlerTrait<
         ProxyActorState,
         ProxyActorCalcRequest,
         ProxyActorCalcResponse,
@@ -129,7 +129,7 @@ impl
         self.tx.tell(AddNumberRequest(5)).await?;
         self.tx.tell(SubNumberRequest(3)).await?;
 
-        let result = self.tx.call(GetNumberRequest).await?;
+        let result = self.tx.ask(GetNumberRequest).await?;
 
         Ok(ProxyActorCalcResponse(result.0))
     }
@@ -138,15 +138,15 @@ impl
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let actor = CalcActor {};
-    let (tx, rx) = channel(100);
+    let (tx, rx) = bounded_channel(100);
 
     let another_actor = ProxyActor { tx };
-    let (another_tx, another_rx) = channel(100);
+    let (another_tx, another_rx) = bounded_channel(100);
 
     tokio::spawn(start_actor(actor, rx));
     tokio::spawn(start_actor(another_actor, another_rx));
 
-    let result = another_tx.call(ProxyActorCalcRequest(10)).await?;
+    let result = another_tx.ask(ProxyActorCalcRequest(10)).await?;
 
     println!("Result: {}", result.0);
 

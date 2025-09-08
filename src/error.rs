@@ -16,7 +16,7 @@ impl ReceiverClosedError {
 pub struct ReceiverHandleError;
 
 #[derive(Error, Debug)]
-pub enum CallError {
+pub enum AskError {
     #[error("{0}")]
     ReceiverClosed(ReceiverClosedError),
     #[error("{0}")]
@@ -25,13 +25,13 @@ pub enum CallError {
 
 #[doc(hidden)]
 #[derive(Error, Debug)]
-pub enum CallHandleError<E>
+pub enum AskHandleError<E>
 where
     E: Debug,
 {
-    #[error("Send ok error")]
-    SendOk,
-    #[error("Handle error: {0}; and error response error")]
+    #[error("Send ok error: {0}")]
+    SendOk(Box<dyn std::error::Error + Send + Sync>),
+    #[error("Handle error: {0} and send error")]
     SendError(E),
     #[error("Handle error: {0}")]
     Handle(E),
@@ -43,7 +43,7 @@ pub enum HandleError<E>
 where
     E: Debug,
 {
-    CallHandleError(CallHandleError<E>),
+    AskHandleError(AskHandleError<E>),
     TellHandleError(E),
 }
 
@@ -56,12 +56,12 @@ where
     }
 }
 
-impl<E> From<CallHandleError<E>> for HandleError<E>
+impl<E> From<AskHandleError<E>> for HandleError<E>
 where
     E: Debug,
 {
-    fn from(value: CallHandleError<E>) -> Self {
-        HandleError::CallHandleError(value)
+    fn from(value: AskHandleError<E>) -> Self {
+        HandleError::AskHandleError(value)
     }
 }
 

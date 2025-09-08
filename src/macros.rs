@@ -45,9 +45,9 @@ macro_rules! match_messages {
         )*
     };
 
-    // Helper to wrap messages: if -> Resp is provided, use CallMessage<Req, Resp>
+    // Helper to wrap messages: if -> Resp is provided, use AskMessage<Req, Resp>
     (@wrap $req:ty, $resp:ty) => {
-        $crate::messaging::CallMessage<$req, $resp>
+        $crate::messaging::AskMessage<$req, $resp>
     };
     (@wrap $req:ty) => {
         $crate::messaging::TellMessage<$req>

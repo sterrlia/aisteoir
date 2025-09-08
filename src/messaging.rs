@@ -1,11 +1,11 @@
 use crate::{
-    error::{CallError, ReceiverClosedError, ReceiverHandleError},
+    error::{AskError, ReceiverClosedError, ReceiverHandleError},
     supervision::{ActorMessage, CommandMessage},
 };
 
 #[doc(hidden)]
 #[derive(Debug)]
-pub struct CallMessage<I, O> {
+pub struct AskMessage<I, O> {
     pub request: I,
     pub tx: oneshot::Sender<Result<O, ReceiverHandleError>>,
 }
@@ -26,8 +26,14 @@ impl<M> Clone for Sender<M> {
     }
 }
 
-pub fn channel<M>(mailbox_size: usize) -> (Sender<M>, Receiver<M>) {
+pub fn bounded_channel<M>(mailbox_size: usize) -> (Sender<M>, Receiver<M>) {
     let (tx, rx) = async_channel::bounded::<ActorMessage<M>>(mailbox_size);
+
+    (Sender { tx }, Receiver { rx })
+}
+
+pub fn unbounded_channel<M>() -> (Sender<M>, Receiver<M>) {
+    let (tx, rx) = async_channel::unbounded::<ActorMessage<M>>();
 
     (Sender { tx }, Receiver { rx })
 }
@@ -69,25 +75,25 @@ where
         self.send(msg).await
     }
 
-    pub async fn call<I, O>(&self, value: I) -> Result<O, CallError>
+    pub async fn ask<I, O>(&self, value: I) -> Result<O, AskError>
     where
         I: Send,
-        CallMessage<I, O>: MessageRequest<M>,
+        AskMessage<I, O>: MessageRequest<M>,
         O: Send,
     {
         let (result_tx, result_rx) = oneshot::channel();
-        let call_message = CallMessage {
+        let call_message = AskMessage {
             request: value,
             tx: result_tx,
         };
-        let case = CallMessage::get_case();
+        let case = AskMessage::get_case();
         let msg = ActorMessage::ActorMessage(case(call_message));
 
-        self.send(msg).await.map_err(CallError::ReceiverClosed)?;
+        self.send(msg).await.map_err(AskError::ReceiverClosed)?;
 
         result_rx
             .await
-            .map_err(|err| CallError::ReceiverClosed(ReceiverClosedError::new(Box::new(err))))?
-            .map_err(CallError::ReceiverHandleError)
+            .map_err(|err| AskError::ReceiverClosed(ReceiverClosedError::new(Box::new(err))))?
+            .map_err(AskError::ReceiverHandleError)
     }
 }

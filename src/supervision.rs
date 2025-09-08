@@ -74,8 +74,8 @@ where
                 match result {
                     Ok(_) => None,
                     Err(err) => Some(match err {
-                        HandleError::CallHandleError(error) => {
-                            logging::error(format!("Call handle error: {error}"));
+                        HandleError::AskHandleError(error) => {
+                            logging::error(format!("Ask handle error: {error}"));
 
                             CommandMessage::StopActor
                         }

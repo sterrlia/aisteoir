@@ -1,8 +1,9 @@
 use std::fmt::{Debug, Display};
 
 use crate::{
-    error::{CallHandleError, HandleError, ReceiverHandleError},
-    messaging::{CallMessage, TellMessage},
+    error::{AskHandleError, HandleError, ReceiverHandleError},
+    logging,
+    messaging::{AskMessage, TellMessage},
 };
 use async_trait::async_trait;
 
@@ -16,28 +17,35 @@ pub trait BaseHandlerTrait<A, S, M, R> {
 }
 
 #[async_trait]
-impl<A, S, I, O, E> BaseHandlerTrait<A, S, CallMessage<I, O>, Result<(), CallHandleError<E>>>
+impl<A, S, I, O, E> BaseHandlerTrait<A, S, AskMessage<I, O>, Result<(), AskHandleError<E>>>
     for BaseHandler
 where
-    A: CallHandlerTrait<S, I, O, E> + Sync + Send + 'static,
+    A: AskHandlerTrait<S, I, O, E> + Sync + Send + 'static,
     S: Send,
     I: Send + 'static,
-    O: Send + 'static,
+    O: Send + Sync + 'static,
     E: Display + Debug,
 {
     async fn _handle(
         actor: &A,
         state: &mut S,
-        msg: CallMessage<I, O>,
-    ) -> Result<(), CallHandleError<E>> {
+        msg: AskMessage<I, O>,
+    ) -> Result<(), AskHandleError<E>> {
         let result = actor.handle(state, msg.request).await;
 
         match result {
-            Ok(data) => msg.tx.send(Ok(data)).map_err(|_| CallHandleError::SendOk),
+            Ok(data) => msg
+                .tx
+                .send(Ok(data))
+                .map_err(|send_error| AskHandleError::SendOk(Box::new(send_error))),
 
             Err(err) => Err(match msg.tx.send(Err(ReceiverHandleError)) {
-                Ok(_) => CallHandleError::Handle(err),
-                Err(_) => CallHandleError::SendError(err),
+                Ok(_) => AskHandleError::Handle(err),
+                Err(send_error) => {
+                    logging::error(format!("Ask result send error: {send_error}"));
+
+                    AskHandleError::SendError(err)
+                }
             }),
         }
     }
@@ -57,7 +65,7 @@ where
 }
 
 #[async_trait]
-pub trait CallHandlerTrait<S, I, O, E>
+pub trait AskHandlerTrait<S, I, O, E>
 where
     S: Send,
     I: Send + 'static,
