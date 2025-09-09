@@ -5,7 +5,7 @@ use ascolt::{
     messaging::{Sender, bounded_channel},
     supervision::{ActorTrait, start_actor},
 };
-use ascolt_macros::{ask_handler, tell_handler};
+use ascolt::macros::{tell_handler, ask_handler};
 use async_trait::async_trait;
 
 pub struct CalcActor {}
