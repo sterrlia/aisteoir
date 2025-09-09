@@ -1,3 +1,6 @@
+#[cfg(feature = "macros")]
+pub use ascolt_macros::*;
+
 #[macro_export]
 macro_rules! match_messages {
     (
