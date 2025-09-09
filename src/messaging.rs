@@ -1,5 +1,5 @@
 use crate::{
-    error::{AskError, ReceiverClosedError, ReceiverHandleError},
+    error::handler::{AskError, ReceiverClosedError, ReceiverHandlerError},
     supervision::{ActorMessage, CommandMessage},
 };
 
@@ -7,7 +7,7 @@ use crate::{
 #[derive(Debug)]
 pub struct AskMessage<I, O> {
     pub request: I,
-    pub tx: oneshot::Sender<Result<O, ReceiverHandleError>>,
+    pub tx: oneshot::Sender<Result<O, ReceiverHandlerError>>,
 }
 
 #[doc(hidden)]
@@ -94,6 +94,6 @@ where
         result_rx
             .await
             .map_err(|err| AskError::ReceiverClosed(ReceiverClosedError::new(Box::new(err))))?
-            .map_err(AskError::ReceiverHandleError)
+            .map_err(AskError::ReceiverHandlerError)
     }
 }

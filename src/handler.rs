@@ -1,14 +1,13 @@
 use std::fmt::{Debug, Display};
 
 use crate::{
-    error::{AskHandleError, HandleError, ReceiverHandleError},
-    logging,
+    error::handler::{AskHandlerError, BaseHandlerError, ReceiverHandlerError},
     messaging::{AskMessage, TellMessage},
 };
 use async_trait::async_trait;
 
 #[doc(hidden)]
-pub struct BaseHandler {}
+pub struct BaseHandler;
 
 #[doc(hidden)]
 #[async_trait]
@@ -17,7 +16,7 @@ pub trait BaseHandlerTrait<A, S, M, R> {
 }
 
 #[async_trait]
-impl<A, S, I, O, E> BaseHandlerTrait<A, S, AskMessage<I, O>, Result<(), AskHandleError<E>>>
+impl<A, S, I, O, E> BaseHandlerTrait<A, S, AskMessage<I, O>, Result<(), AskHandlerError<E>>>
     for BaseHandler
 where
     A: AskHandlerTrait<S, I, O, E> + Sync + Send + 'static,
@@ -30,22 +29,18 @@ where
         actor: &A,
         state: &mut S,
         msg: AskMessage<I, O>,
-    ) -> Result<(), AskHandleError<E>> {
+    ) -> Result<(), AskHandlerError<E>> {
         let result = actor.handle(state, msg.request).await;
 
         match result {
             Ok(data) => msg
                 .tx
                 .send(Ok(data))
-                .map_err(|send_error| AskHandleError::SendOk(Box::new(send_error))),
+                .map_err(|send_error| AskHandlerError::SendOk(Box::new(send_error))),
 
-            Err(err) => Err(match msg.tx.send(Err(ReceiverHandleError)) {
-                Ok(_) => AskHandleError::Handle(err),
-                Err(send_error) => {
-                    logging::error(format!("Ask result send error: {send_error}"));
-
-                    AskHandleError::SendError(err)
-                }
+            Err(err) => Err(match msg.tx.send(Err(ReceiverHandlerError)) {
+                Ok(_) => AskHandlerError::Handle(err),
+                Err(send_error) => AskHandlerError::SendError(err, Box::new(send_error)),
             }),
         }
     }
@@ -90,5 +85,5 @@ pub trait ActorMessageHandlerTrait<S, M, E>
 where
     E: Display + Debug,
 {
-    async fn __handle(&self, state: &mut S, msg: M) -> Result<(), HandleError<E>>;
+    async fn __handle(&self, state: &mut S, msg: M) -> Result<(), BaseHandlerError<E>>;
 }

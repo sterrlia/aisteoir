@@ -1,9 +1,8 @@
 use ascolt::{
-    error::{ActorInitError, ActorStopError, DefaultHandleError},
+    error::{actor::ActorInitFailure, handler::DefaultHandlerError},
     handler::{AskHandlerTrait, TellHandlerTrait},
     match_messages,
-    messaging::Sender,
-    messaging::bounded_channel,
+    messaging::{Sender, bounded_channel},
     supervision::{ActorTrait, start_actor},
 };
 use async_trait::async_trait;
@@ -22,7 +21,7 @@ pub struct GetNumberResponse(i32);
 match_messages! {
     actor: CalcActor;
     state: CalcState;
-    error: DefaultHandleError;
+    error: DefaultHandlerError;
 
     Message {
         AddNumberRequest;
@@ -32,48 +31,44 @@ match_messages! {
 }
 
 #[async_trait]
-impl ActorTrait<CalcState> for CalcActor {
-    async fn init(&self) -> Result<CalcState, ActorInitError> {
+impl ActorTrait<CalcState, DefaultHandlerError> for CalcActor {
+    async fn init(&self) -> Result<CalcState, ActorInitFailure> {
         Ok(CalcState { number: 0 })
-    }
-
-    async fn on_stop(&self, _: CalcState) -> Result<(), ActorStopError> {
-        Ok(())
     }
 }
 
 #[async_trait]
-impl AskHandlerTrait<CalcState, GetNumberRequest, GetNumberResponse, DefaultHandleError>
+impl AskHandlerTrait<CalcState, GetNumberRequest, GetNumberResponse, DefaultHandlerError>
     for CalcActor
 {
     async fn handle(
         &self,
         state: &mut CalcState,
         _: GetNumberRequest,
-    ) -> Result<GetNumberResponse, DefaultHandleError> {
+    ) -> Result<GetNumberResponse, DefaultHandlerError> {
         Ok(GetNumberResponse(state.number))
     }
 }
 
 #[async_trait]
-impl TellHandlerTrait<CalcState, AddNumberRequest, DefaultHandleError> for CalcActor {
+impl TellHandlerTrait<CalcState, AddNumberRequest, DefaultHandlerError> for CalcActor {
     async fn handle(
         &self,
         state: &mut CalcState,
         msg: AddNumberRequest,
-    ) -> Result<(), DefaultHandleError> {
+    ) -> Result<(), DefaultHandlerError> {
         state.number += msg.0;
         Ok(())
     }
 }
 
 #[async_trait]
-impl TellHandlerTrait<CalcState, SubNumberRequest, DefaultHandleError> for CalcActor {
+impl TellHandlerTrait<CalcState, SubNumberRequest, DefaultHandlerError> for CalcActor {
     async fn handle(
         &self,
         state: &mut CalcState,
         msg: SubNumberRequest,
-    ) -> Result<(), DefaultHandleError> {
+    ) -> Result<(), DefaultHandlerError> {
         state.number -= msg.0;
         Ok(())
     }
@@ -91,7 +86,7 @@ pub struct ProxyActorCalcResponse(i32);
 match_messages! {
     actor: ProxyActor;
     state: ProxyActorState;
-    error: DefaultHandleError;
+    error: DefaultHandlerError;
 
 
     ProxyActorMessage {
@@ -100,13 +95,9 @@ match_messages! {
 }
 
 #[async_trait]
-impl ActorTrait<ProxyActorState> for ProxyActor {
-    async fn init(&self) -> Result<ProxyActorState, ActorInitError> {
+impl ActorTrait<ProxyActorState, DefaultHandlerError> for ProxyActor {
+    async fn init(&self) -> Result<ProxyActorState, ActorInitFailure> {
         Ok(ProxyActorState {})
-    }
-
-    async fn on_stop(&self, _: ProxyActorState) -> Result<(), ActorStopError> {
-        Ok(())
     }
 }
 
@@ -116,14 +107,14 @@ impl
         ProxyActorState,
         ProxyActorCalcRequest,
         ProxyActorCalcResponse,
-        DefaultHandleError,
+        DefaultHandlerError,
     > for ProxyActor
 {
     async fn handle(
         &self,
         _: &mut ProxyActorState,
         msg: ProxyActorCalcRequest,
-    ) -> Result<ProxyActorCalcResponse, DefaultHandleError> {
+    ) -> Result<ProxyActorCalcResponse, DefaultHandlerError> {
         self.tx.tell(AddNumberRequest(msg.0)).await?;
 
         self.tx.tell(AddNumberRequest(5)).await?;
@@ -137,6 +128,10 @@ impl
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::INFO)
+        .init();
+
     let actor = CalcActor {};
     let (tx, rx) = bounded_channel(100);
 
