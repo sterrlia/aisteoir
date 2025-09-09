@@ -6,7 +6,7 @@ use ascolt::{
     },
     handler::{AskHandlerTrait, TellHandlerTrait},
     match_messages,
-    messaging::{MessageSender, Sender, bounded_channel},
+    messaging::{MessageSender, bounded_channel},
     supervision::{ActorTrait, CommandMessage, start_actor},
 };
 use async_trait::async_trait;
