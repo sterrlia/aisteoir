@@ -10,7 +10,6 @@ readme = "README.md"
 keywords = [
     "actor",
     "async",
-    "tokio",
     "actor-model"
 ]
 categories = [
@@ -29,11 +28,13 @@ async-channel = "2.5.0"
 oneshot = "0.1.11"
 derive_more = { version = "2.0.1", features = ["from"] }
 futures = "0.3.31"
+ascolt-macros = { version = "0.1.0", optional = true }
 
 [dev-dependencies]
 tokio = { version = "1.47.1", features = ["sync", "rt-multi-thread", "macros"] }
 tracing-subscriber = "0.3.20"
 
 [features]
-default = ["tracing"]
+default = ["tracing", "macros"]
 tracing = ["dep:tracing", "tokio/tracing"]
+macros = ["dep:ascolt-macros"]

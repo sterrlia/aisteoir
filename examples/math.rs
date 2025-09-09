@@ -5,6 +5,7 @@ use ascolt::{
     messaging::{Sender, bounded_channel},
     supervision::{ActorTrait, start_actor},
 };
+use ascolt_macros::{ask_handler, tell_handler};
 use async_trait::async_trait;
 
 pub struct CalcActor {}
@@ -37,29 +38,23 @@ impl ActorTrait<CalcState, DefaultHandlerError> for CalcActor {
     }
 }
 
-#[async_trait]
-impl AskHandlerTrait<CalcState, GetNumberRequest, GetNumberResponse, DefaultHandlerError>
-    for CalcActor
-{
-    async fn handle(
-        &self,
-        state: &mut CalcState,
-        _: GetNumberRequest,
-    ) -> Result<GetNumberResponse, DefaultHandlerError> {
-        Ok(GetNumberResponse(state.number))
-    }
+#[ask_handler]
+async fn handle(
+    self: &CalcActor,
+    state: &mut CalcState,
+    msg: GetNumberRequest,
+) -> Result<GetNumberResponse, DefaultHandlerError> {
+    Ok(GetNumberResponse(state.number))
 }
 
-#[async_trait]
-impl TellHandlerTrait<CalcState, AddNumberRequest, DefaultHandlerError> for CalcActor {
-    async fn handle(
-        &self,
-        state: &mut CalcState,
-        msg: AddNumberRequest,
-    ) -> Result<(), DefaultHandlerError> {
-        state.number += msg.0;
-        Ok(())
-    }
+#[tell_handler]
+async fn handle(
+    self: &CalcActor,
+    state: &mut CalcState,
+    msg: AddNumberRequest,
+) -> Result<(), DefaultHandlerError> {
+    state.number += msg.0;
+    Ok(())
 }
 
 #[async_trait]
