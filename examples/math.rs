@@ -1,16 +1,16 @@
 use ascolt::{
-    error::{actor::ActorInitFailure, handler::DefaultHandlerError},
+    error::{actor::{ActorInitFailure, ActorStopFailure}, handler::DefaultHandlerError},
     handler::{AskHandlerTrait, TellHandlerTrait},
     match_messages,
-    messaging::{Sender, bounded_channel},
-    supervision::{ActorTrait, start_actor},
+    messaging::{bounded_channel, MessageSender, Sender},
+    supervision::{start_actor, ActorTrait, CommandMessage},
 };
 use ascolt::macros::{tell_handler, ask_handler};
 use async_trait::async_trait;
 
 pub struct CalcActor {}
 
-pub struct CalcState {
+pub struct CalcActorState {
     number: i32,
 }
 
@@ -21,10 +21,10 @@ pub struct GetNumberResponse(i32);
 
 match_messages! {
     actor: CalcActor;
-    state: CalcState;
+    state: CalcActorState;
     error: DefaultHandlerError;
 
-    Message {
+    CalcActorMessage {
         AddNumberRequest;
         SubNumberRequest;
         GetNumberRequest -> GetNumberResponse;
@@ -32,16 +32,22 @@ match_messages! {
 }
 
 #[async_trait]
-impl ActorTrait<CalcState, DefaultHandlerError> for CalcActor {
-    async fn init(&self) -> Result<CalcState, ActorInitFailure> {
-        Ok(CalcState { number: 0 })
+impl ActorTrait<CalcActorState, DefaultHandlerError> for CalcActor {
+    async fn init(&self) -> Result<CalcActorState, ActorInitFailure> {
+        Ok(CalcActorState { number: 0 })
+    }
+
+    async fn on_stop(&self, _: CalcActorState) -> Result<(), ActorStopFailure> {
+        println!("Calc actor stopped");
+
+        Ok(())
     }
 }
 
 #[ask_handler]
 async fn handle(
     self: &CalcActor,
-    state: &mut CalcState,
+    state: &mut CalcActorState,
     msg: GetNumberRequest,
 ) -> Result<GetNumberResponse, DefaultHandlerError> {
     Ok(GetNumberResponse(state.number))
@@ -50,7 +56,7 @@ async fn handle(
 #[tell_handler]
 async fn handle(
     self: &CalcActor,
-    state: &mut CalcState,
+    state: &mut CalcActorState,
     msg: AddNumberRequest,
 ) -> Result<(), DefaultHandlerError> {
     state.number += msg.0;
@@ -58,10 +64,10 @@ async fn handle(
 }
 
 #[async_trait]
-impl TellHandlerTrait<CalcState, SubNumberRequest, DefaultHandlerError> for CalcActor {
+impl TellHandlerTrait<CalcActorState, SubNumberRequest, DefaultHandlerError> for CalcActor {
     async fn handle(
         &self,
-        state: &mut CalcState,
+        state: &mut CalcActorState,
         msg: SubNumberRequest,
     ) -> Result<(), DefaultHandlerError> {
         state.number -= msg.0;
@@ -70,7 +76,7 @@ impl TellHandlerTrait<CalcState, SubNumberRequest, DefaultHandlerError> for Calc
 }
 
 pub struct ProxyActor {
-    tx: Sender<Message>,
+    tx: MessageSender<CalcActorMessage>,
 }
 
 #[derive(Default)]
@@ -94,6 +100,12 @@ match_messages! {
 impl ActorTrait<ProxyActorState, DefaultHandlerError> for ProxyActor {
     async fn init(&self) -> Result<ProxyActorState, ActorInitFailure> {
         Ok(ProxyActorState::default())
+    }
+
+    async fn on_stop(&self, _: ProxyActorState) -> Result<(), ActorStopFailure> {
+        println!("Proxy actor stopped");
+
+        Ok(())
     }
 }
 
@@ -128,18 +140,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_max_level(tracing::Level::INFO)
         .init();
 
-    let actor = CalcActor {};
-    let (tx, rx) = bounded_channel(100);
+    let calc_actor = CalcActor {};
+    let (calc_actor_tx, calc_actor_rx) = bounded_channel::<CalcActorMessage>(100);
+    let (calc_actor_message_tx, calc_actor_command_tx) = calc_actor_tx.split();
 
-    let another_actor = ProxyActor { tx };
-    let (another_tx, another_rx) = bounded_channel(100);
+    let proxy_actor = ProxyActor { tx: calc_actor_message_tx };
+    let (proxy_actor_tx, proxy_actor_rx) = bounded_channel::<ProxyActorMessage>(100);
 
-    tokio::spawn(start_actor(actor, rx));
-    tokio::spawn(start_actor(another_actor, another_rx));
+    tokio::spawn(start_actor(calc_actor, calc_actor_rx));
+    tokio::spawn(start_actor(proxy_actor, proxy_actor_rx));
 
-    let result = another_tx.ask(ProxyActorCalcRequest(10)).await?;
+    let result = proxy_actor_tx.ask(ProxyActorCalcRequest(10)).await?;
 
     println!("Result: {}", result.0);
+
+    calc_actor_command_tx.command(CommandMessage::StopActor).await?;
 
     Ok(())
 }

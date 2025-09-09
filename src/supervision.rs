@@ -93,7 +93,7 @@ where
             };
         }
 
-        if rx.is_empty() || rx.is_closed() {
+        if rx.is_closed() {
             break;
         }
     }
