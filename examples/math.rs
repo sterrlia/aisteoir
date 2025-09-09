@@ -73,6 +73,7 @@ pub struct ProxyActor {
     tx: Sender<Message>,
 }
 
+#[derive(Default)]
 pub struct ProxyActorState {}
 
 pub struct ProxyActorCalcRequest(i32);
@@ -92,7 +93,7 @@ match_messages! {
 #[async_trait]
 impl ActorTrait<ProxyActorState, DefaultHandlerError> for ProxyActor {
     async fn init(&self) -> Result<ProxyActorState, ActorInitFailure> {
-        Ok(ProxyActorState {})
+        Ok(ProxyActorState::default())
     }
 }
 

@@ -46,18 +46,6 @@ where
     }
 }
 
-#[async_trait]
-impl<A, S, E> ActorTrait<S, E> for A
-where
-    A: Sync,
-    S: Send + Default + 'static,
-    E: Send + Display + Debug + 'static,
-{
-    async fn init(&self) -> Result<S, ActorInitFailure> {
-        Ok(S::default())
-    }
-}
-
 pub async fn start_actor<A, S, M, E>(actor: A, rx: Receiver<M>)
 where
     S: Send + 'static,
