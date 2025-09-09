@@ -31,7 +31,7 @@ first_actor_tx.tell(SomeRequest { number: 3 })
     .await?; // fire-and-forget
 
 let result = second_actor_tx
-    .call(SecondActorCalcRequest(10))
+    .ask(SecondActorCalcRequest(10))
     .await?; // request-response
 
 println!("Result: {}", result.0);
