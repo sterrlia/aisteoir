@@ -1,11 +1,14 @@
+use ascolt::macros::{ask_handler, tell_handler};
 use ascolt::{
-    error::{actor::{ActorInitFailure, ActorStopFailure}, handler::DefaultHandlerError},
+    error::{
+        actor::{ActorInitFailure, ActorStopFailure},
+        handler::DefaultHandlerError,
+    },
     handler::{AskHandlerTrait, TellHandlerTrait},
     match_messages,
-    messaging::{bounded_channel, MessageSender, Sender},
-    supervision::{start_actor, ActorTrait, CommandMessage},
+    messaging::{MessageSender, Sender, bounded_channel},
+    supervision::{ActorTrait, CommandMessage, start_actor},
 };
-use ascolt::macros::{tell_handler, ask_handler};
 use async_trait::async_trait;
 
 pub struct CalcActor {}
@@ -144,7 +147,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let (calc_actor_tx, calc_actor_rx) = bounded_channel::<CalcActorMessage>(100);
     let (calc_actor_message_tx, calc_actor_command_tx) = calc_actor_tx.split();
 
-    let proxy_actor = ProxyActor { tx: calc_actor_message_tx };
+    let proxy_actor = ProxyActor {
+        tx: calc_actor_message_tx,
+    };
     let (proxy_actor_tx, proxy_actor_rx) = bounded_channel::<ProxyActorMessage>(100);
 
     tokio::spawn(start_actor(calc_actor, calc_actor_rx));
@@ -154,7 +159,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Result: {}", result.0);
 
-    calc_actor_command_tx.command(CommandMessage::StopActor).await?;
+    calc_actor_command_tx
+        .command(CommandMessage::StopActor)
+        .await?;
 
     Ok(())
 }
