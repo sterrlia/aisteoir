@@ -1,6 +1,6 @@
 [package]
 name = "ascolt"
-version = "0.1.5"
+version = "0.1.6"
 edition = "2024"
 authors = ["sterrlia <dev@sterrlia.com>"]
 description = "Async runtime-agnostic actor framework"
@@ -28,7 +28,7 @@ async-channel = "2.5.0"
 oneshot = "0.1.11"
 derive_more = { version = "2.0.1", features = ["from"] }
 futures = "0.3.31"
-ascolt-macros = { version = "0.1.1", optional = true }
+ascolt-macros = { version = "0.1.2", optional = true }
 
 [dev-dependencies]
 tokio = { version = "1.47.1", features = ["sync", "rt-multi-thread", "macros"] }

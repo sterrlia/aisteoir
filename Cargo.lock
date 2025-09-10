@@ -19,7 +19,7 @@ checksum = "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
 
 [[package]]
 name = "ascolt"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "ascolt-macros",
  "async-channel",
@@ -35,9 +35,9 @@ dependencies = [
 
 [[package]]
 name = "ascolt-macros"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bd187280774ae8f4f8ef00aea825cdd5bffc0c291ada64188c047320f06edbd3"
+checksum = "a29e9b1457fe9f05bbbe641589d1fcca312f2f406b1901f72b85fa6f266bd556"
 dependencies = [
  "proc-macro2",
  "quote",
