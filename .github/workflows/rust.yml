@@ -15,6 +15,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - uses: cargo-bins/cargo-binstall@main
 
     - name: Install Clippy and Rustfmt
       run: |
@@ -38,7 +39,7 @@ jobs:
 
     - name: Install cargo-msrv
       run: |
-        cargo install cargo-msrv
+        cargo binstall cargo-msrv
         cargo msrv --version
 
     - name: Verify rust version
