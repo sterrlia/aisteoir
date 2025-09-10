@@ -10,6 +10,8 @@ use ascolt::{
     supervision::{ActorTrait, CommandMessage, start_actor},
 };
 use async_trait::async_trait;
+use derive_more::From;
+use thiserror::Error;
 
 pub struct CalcActor {}
 
@@ -34,9 +36,19 @@ match_messages! {
     }
 }
 
+#[derive(Error, Debug, From)]
+#[error(transparent)]
+struct AnyhowContainer(anyhow::Error);
+
+fn some_function_that_returns_anyhow() -> anyhow::Result<()> {
+    Ok(())
+}
+
 #[async_trait]
 impl ActorTrait<CalcActorState, DefaultHandlerError> for CalcActor {
     async fn init(&self) -> Result<CalcActorState, ActorInitFailure> {
+        some_function_that_returns_anyhow().map_err(AnyhowContainer::from)?;
+
         Ok(CalcActorState { number: 0 })
     }
 
