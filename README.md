@@ -9,12 +9,11 @@
 Async runtime-agnostic actor framework
 
 ### Features
-+ Clean syntax for request-response pattern (you just implement `CallHandlerTrait`)
++ Clean type-safe syntax
 + Async support
++ Both unbounded and bounded channels supported
 + Handler errors can trigger actor stop, forced stop, or restart (behavior is customizable)
-+ No built-in child actor concept, but you can run actors within other actors and store their `tx` in the parent actor's state
 + No heavy macros
-+ Strict typing
 
 ### Examples
 ``` rust
@@ -40,6 +39,8 @@ println!("Result: {}", result.0);
 More examples located at examples directory.
 
 ## What can be added
+- Panic isolation
+- Backpressure management
 - Supervisor for controlling multiple actors
 - Dependency graph (e.g., automatically shut down actors when the actors they depend on stop)
 - Actor communication over the network
