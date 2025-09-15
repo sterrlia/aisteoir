@@ -14,6 +14,7 @@ Async runtime-agnostic actor framework
 + Both unbounded and bounded channels supported
 + Handler errors can trigger actor stop, forced stop, or restart (behavior is customizable)
 + No heavy macros
++ No unsafe code
 
 ### Examples
 ``` rust
@@ -44,3 +45,9 @@ More examples located at examples directory.
 - Supervisor for controlling multiple actors
 - Dependency graph (e.g., automatically shut down actors when the actors they depend on stop)
 - Actor communication over the network
+
+### Alternatives
+- [Kameo](https://github.com/tqwewe/kameo)
+- [Coerce](https://github.com/LeonHartley/Coerce-rs)
+- [Ractor](https://github.com/slawlor/ractor)
+- [Actix](https://github.com/actix/actix)
