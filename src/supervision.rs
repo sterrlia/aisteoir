@@ -46,7 +46,7 @@ where
     }
 }
 
-pub async fn start_actor<A, S, M, E>(actor: A, rx: Receiver<M>)
+pub async fn spawn<A, S, M, E>(actor: A, rx: Receiver<M>)
 where
     S: Send + 'static,
     M: Send + 'static,

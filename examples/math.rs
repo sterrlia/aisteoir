@@ -7,7 +7,7 @@ use ascolt::{
     handler::{AskHandlerTrait, TellHandlerTrait},
     match_messages,
     messaging::{MessageSender, bounded_channel},
-    supervision::{ActorTrait, CommandMessage, start_actor},
+    supervision::{ActorTrait, CommandMessage, spawn},
 };
 use async_trait::async_trait;
 use derive_more::From;
@@ -164,8 +164,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
     let (proxy_actor_tx, proxy_actor_rx) = bounded_channel::<ProxyActorMessage>(100);
 
-    tokio::spawn(start_actor(calc_actor, calc_actor_rx));
-    tokio::spawn(start_actor(proxy_actor, proxy_actor_rx));
+    tokio::spawn(spawn(calc_actor, calc_actor_rx));
+    tokio::spawn(spawn(proxy_actor, proxy_actor_rx));
 
     let result = proxy_actor_tx.ask(ProxyActorCalcRequest(10)).await?;
 
