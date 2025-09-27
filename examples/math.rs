@@ -1,4 +1,4 @@
-use ascolt::{ask_handler, tell_handler, Actor, ActorTrait, CommandMessage};
+use ascolt::{Actor, ActorTrait, CommandMessage, ask_handler, tell_handler};
 use ascolt::{
     error::{
         actor::{ActorInitFailure, ActorStopFailure},
