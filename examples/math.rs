@@ -151,8 +151,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
     let (proxy_actor_tx, proxy_actor_rx) = ascolt::bounded_channel::<ProxyActorMessage>(100);
 
-    tokio::spawn(ascolt::spawn(calc_actor, calc_actor_rx));
-    tokio::spawn(ascolt::spawn(proxy_actor, proxy_actor_rx));
+    tokio::spawn(ascolt::run(calc_actor, calc_actor_rx));
+    tokio::spawn(ascolt::run(proxy_actor, proxy_actor_rx));
 
     let result = proxy_actor_tx.ask(ProxyActorCalcRequest(10)).await?;
 

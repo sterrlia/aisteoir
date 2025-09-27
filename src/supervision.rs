@@ -46,8 +46,7 @@ where
     }
 }
 
-// :TODO: rename to run
-pub async fn spawn<A, M, E>(actor: A, rx: Receiver<M>)
+pub async fn run<A, M, E>(actor: A, rx: Receiver<M>)
 where
     M: Send + 'static,
     A: ActorMessageHandlerTrait<M, E> + ActorTrait<E> + Send + Sync + 'static,
