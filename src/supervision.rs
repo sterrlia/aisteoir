@@ -24,33 +24,30 @@ pub enum ActorMessage<M> {
 }
 
 #[async_trait]
-pub trait ActorTrait<S, E>
+pub trait ActorTrait<E>
 where
-    S: Send + 'static,
     E: Send + Display + Debug + 'static,
 {
-    async fn init(&self) -> Result<S, ActorInitFailure>;
+    async fn init(&self) -> Result<(), ActorInitFailure>;
 
     #[allow(unused_variables, unused_mut)]
-    async fn on_stop(&self, mut state: S) -> Result<(), ActorStopFailure> {
+    async fn on_stop(&self) -> Result<(), ActorStopFailure> {
         Ok(())
     }
 
     #[allow(unused_variables, unused_mut)]
     async fn on_error(
         &self,
-        state: &mut S,
         error: BaseHandlerError<E>,
     ) -> Result<Option<CommandMessage>, ActorHandleErrorFailure> {
         Ok(Some(CommandMessage::StopActor))
     }
 }
 
-pub async fn spawn<A, S, M, E>(actor: A, rx: Receiver<M>)
+pub async fn spawn<A, M, E>(actor: A, rx: Receiver<M>)
 where
-    S: Send + 'static,
     M: Send + 'static,
-    A: ActorMessageHandlerTrait<S, M, E> + ActorTrait<S, E> + Send + Sync + 'static,
+    A: ActorMessageHandlerTrait<M, E> + ActorTrait<E> + Send + Sync + 'static,
     E: Send + Debug + Display + 'static,
 {
     if let Err(error) = run_actor_loop(actor, rx.rx).await {
@@ -60,22 +57,21 @@ where
     log::info("Actor task finished - channel closed".to_string());
 }
 
-async fn run_actor_loop<A, S, M, E>(
+async fn run_actor_loop<A, M, E>(
     actor: A,
     rx: async_channel::Receiver<ActorMessage<M>>,
 ) -> Result<(), ActorRuntimeError>
 where
-    S: Send + 'static,
     M: Send + 'static,
-    A: ActorMessageHandlerTrait<S, M, E> + ActorTrait<S, E> + Send + Sync + 'static,
+    A: ActorMessageHandlerTrait<M, E> + ActorTrait<E> + Send + Sync + 'static,
     E: Send + Debug + Display + 'static,
 {
-    let mut state = actor.init().await?;
+    actor.init().await?;
 
     loop {
         let msg = rx.recv().await?;
 
-        let command_result = handle_message(&actor, &mut state, msg).await?;
+        let command_result = handle_message(&actor, msg).await?;
 
         if let Some(command) = command_result {
             match command {
@@ -86,9 +82,9 @@ where
                     return Ok(());
                 }
                 CommandMessage::RestartActor => {
-                    actor.on_stop(state).await?;
+                    actor.on_stop().await?;
 
-                    state = actor.init().await?;
+                    actor.init().await?;
                 }
             };
         }
@@ -98,20 +94,18 @@ where
         }
     }
 
-    actor.on_stop(state).await?;
+    actor.on_stop().await?;
 
     Ok(())
 }
 
-async fn handle_message<A, S, M, E>(
+async fn handle_message<A, M, E>(
     actor: &A,
-    state: &mut S,
     msg: ActorMessage<M>,
 ) -> Result<Option<CommandMessage>, ActorHandleErrorFailure>
 where
-    S: Send + 'static,
     M: Send + 'static,
-    A: Send + Sync + ActorMessageHandlerTrait<S, M, E> + ActorTrait<S, E> + 'static,
+    A: Send + Sync + ActorMessageHandlerTrait<M, E> + ActorTrait<E> + 'static,
     E: Send + Debug + Display + 'static,
 {
     Ok(match msg {
@@ -119,13 +113,13 @@ where
 
         ActorMessage::ActorMessage(actor_msg) => {
             let result = actor
-                .__handle(state, actor_msg)
+                .__handle(actor_msg)
                 .await
                 .inspect_err(|err| log::error(format!("{err}")));
 
             match result {
                 Ok(_) => None,
-                Err(err) => actor.on_error(state, err).await?,
+                Err(err) => actor.on_error(err).await?,
             }
         }
     })

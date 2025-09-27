@@ -5,7 +5,6 @@ pub use ascolt_macros::*;
 macro_rules! match_messages {
     (
         actor: $actor:ident;
-        state: $state:ident;
         error: $error:ident;
 
         $(#[$meta:meta])*
@@ -25,14 +24,14 @@ macro_rules! match_messages {
         }
 
         #[async_trait::async_trait]
-        impl $crate::handler::ActorMessageHandlerTrait<$state, $msg_enum, $error> for $actor {
-            async fn __handle(&self, state: &mut $state, msg: $msg_enum) -> Result<(), $crate::error::handler::BaseHandlerError<$error>> {
+        impl $crate::handler::ActorMessageHandlerTrait<$msg_enum, $error> for $actor {
+            async fn __handle(&self, msg: $msg_enum) -> Result<(), $crate::error::handler::BaseHandlerError<$error>> {
                 use $crate::handler::BaseHandlerTrait;
 
                 match msg {
                     $(
                         $msg_enum::$req(inner) => {
-                            $crate::handler::BaseHandler::_handle(self, state, inner).await.map_err(|err| err.into())
+                            $crate::handler::BaseHandler::_handle(self, inner).await.map_err(|err| err.into())
                         }
                     ),*
                 }
