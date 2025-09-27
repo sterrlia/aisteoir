@@ -46,6 +46,7 @@ where
     }
 }
 
+// :TODO: rename to run
 pub async fn spawn<A, M, E>(actor: A, rx: Receiver<M>)
 where
     M: Send + 'static,
