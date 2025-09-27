@@ -1,4 +1,4 @@
-use ascolt::{ActorTrait, CommandMessage, ask_handler, tell_handler};
+use ascolt::{ask_handler, tell_handler, Actor, ActorTrait, CommandMessage};
 use ascolt::{
     error::{
         actor::{ActorInitFailure, ActorStopFailure},
@@ -96,6 +96,8 @@ impl TellHandlerTrait<SubNumberRequest, DefaultHandlerError> for CalcActor {
     }
 }
 
+#[derive(Actor)]
+#[actor(error = DefaultHandlerError)]
 pub struct ProxyActor {
     tx: MessageSender<CalcActorMessage>,
 }
@@ -110,19 +112,6 @@ match_messages! {
 
     ProxyActorMessage {
         ProxyActorCalcRequest -> ProxyActorCalcResponse;
-    }
-}
-
-#[async_trait]
-impl ActorTrait<DefaultHandlerError> for ProxyActor {
-    async fn init(&self) -> Result<(), ActorInitFailure> {
-        Ok(())
-    }
-
-    async fn on_stop(&self) -> Result<(), ActorStopFailure> {
-        println!("Proxy actor stopped");
-
-        Ok(())
     }
 }
 

@@ -42,9 +42,9 @@ dependencies = [
 
 [[package]]
 name = "ascolt-macros"
-version = "0.1.3"
+version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3b78fd65f0b1d7b187469540a9df09b4fa01c53b155557e1f3f71675f5355b7d"
+checksum = "901874b08fd93b9c916a535890c238912e816bca1302429cd63abae2da29f989"
 dependencies = [
  "proc-macro2",
  "quote",
