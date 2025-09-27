@@ -28,7 +28,9 @@ pub trait ActorTrait<E>
 where
     E: Send + Display + Debug + 'static,
 {
-    async fn init(&self) -> Result<(), ActorInitFailure>;
+    async fn init(&self) -> Result<(), ActorInitFailure> {
+        Ok(())
+    }
 
     #[allow(unused_variables, unused_mut)]
     async fn on_stop(&self) -> Result<(), ActorStopFailure> {

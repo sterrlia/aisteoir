@@ -1,4 +1,4 @@
-use ascolt::macros::{ask_handler, tell_handler};
+use ascolt::{ActorTrait, CommandMessage, ask_handler, tell_handler};
 use ascolt::{
     error::{
         actor::{ActorInitFailure, ActorStopFailure},
@@ -6,8 +6,7 @@ use ascolt::{
     },
     handler::{AskHandlerTrait, TellHandlerTrait},
     match_messages,
-    messaging::{MessageSender, bounded_channel},
-    supervision::{ActorTrait, CommandMessage, spawn},
+    messaging::MessageSender,
 };
 use async_trait::async_trait;
 use derive_more::From;
@@ -155,16 +154,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let calc_actor = CalcActor {
         state: Mutex::new(CalcActorState::default()),
     };
-    let (calc_actor_tx, calc_actor_rx) = bounded_channel::<CalcActorMessage>(100);
+    let (calc_actor_tx, calc_actor_rx) = ascolt::bounded_channel::<CalcActorMessage>(100);
     let (calc_actor_message_tx, calc_actor_command_tx) = calc_actor_tx.split();
 
     let proxy_actor = ProxyActor {
         tx: calc_actor_message_tx,
     };
-    let (proxy_actor_tx, proxy_actor_rx) = bounded_channel::<ProxyActorMessage>(100);
+    let (proxy_actor_tx, proxy_actor_rx) = ascolt::bounded_channel::<ProxyActorMessage>(100);
 
-    tokio::spawn(spawn(calc_actor, calc_actor_rx));
-    tokio::spawn(spawn(proxy_actor, proxy_actor_rx));
+    tokio::spawn(ascolt::spawn(calc_actor, calc_actor_rx));
+    tokio::spawn(ascolt::spawn(proxy_actor, proxy_actor_rx));
 
     let result = proxy_actor_tx.ask(ProxyActorCalcRequest(10)).await?;
 
@@ -173,6 +172,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     calc_actor_command_tx
         .command(CommandMessage::StopActor)
         .await?;
+
+    proxy_actor_tx.command(CommandMessage::StopActor).await?;
 
     Ok(())
 }

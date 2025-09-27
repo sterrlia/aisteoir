@@ -1,6 +1,3 @@
-#[cfg(feature = "macros")]
-pub use ascolt_macros::*;
-
 #[macro_export]
 macro_rules! match_messages {
     (
@@ -47,7 +44,6 @@ macro_rules! match_messages {
         )*
     };
 
-    // Helper to wrap messages: if -> Resp is provided, use AskMessage<Req, Resp>
     (@wrap $req:ty, $resp:ty) => {
         $crate::messaging::AskMessage<$req, $resp>
     };
