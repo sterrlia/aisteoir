@@ -19,13 +19,13 @@ Async runtime-agnostic actor framework
 ### Examples
 ``` rust
 let first_actor = FirstActor {};
-let (first_actor_tx, first_actor_rx) = create_channel(100);
+let (first_actor_tx, first_actor_rx) = ascolt::bounded_channel(100);
 let second_actor = SecondActor { first_actor_tx };
-let (second_actor_tx, second_actor_rx) = create_channel(100);
+let (second_actor_tx, second_actor_rx) = ascolt::bounded_channel(100);
 
 // if using tokio runtime
-tokio::spawn(start_actor(actor, first_actor_rx));
-tokio::spawn(start_actor(second_actor, second_actor_rx));
+tokio::spawn(ascolt::spawn(actor, first_actor_rx));
+tokio::spawn(ascolt::spawn(second_actor, second_actor_rx));
 
 first_actor_tx.tell(SomeRequest { number: 3 })
     .await?; // fire-and-forget
