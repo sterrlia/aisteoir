@@ -40,6 +40,11 @@ where
 
 #[doc(hidden)]
 #[derive(Error, Debug)]
+#[error("Tell handle error: {0}")]
+pub struct TellHandlerError<E>(#[source] pub E);
+
+#[doc(hidden)]
+#[derive(Error, Debug)]
 pub enum BaseHandlerError<E>
 where
     E: Debug,
@@ -47,14 +52,14 @@ where
     #[error("Ask handler error: {0}")]
     AskHandlerError(AskHandlerError<E>),
     #[error("Tell handler error: {0}")]
-    TellHandlerError(E),
+    TellHandlerError(TellHandlerError<E>),
 }
 
-impl<E> From<E> for BaseHandlerError<E>
+impl<E> From<TellHandlerError<E>> for BaseHandlerError<E>
 where
     E: Debug,
 {
-    fn from(value: E) -> Self {
+    fn from(value: TellHandlerError<E>) -> Self {
         BaseHandlerError::TellHandlerError(value)
     }
 }

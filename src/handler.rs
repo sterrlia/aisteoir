@@ -1,7 +1,7 @@
 use std::fmt::{Debug, Display};
 
 use crate::{
-    error::handler::{AskHandlerError, BaseHandlerError, ReceiverHandlerError},
+    error::handler::{AskHandlerError, BaseHandlerError, ReceiverHandlerError, TellHandlerError},
     messaging::{AskMessage, TellMessage},
 };
 use async_trait::async_trait;
@@ -42,14 +42,14 @@ where
 }
 
 #[async_trait]
-impl<A, I, E> BaseHandlerTrait<A, TellMessage<I>, Result<(), E>> for BaseHandler
+impl<A, I, E> BaseHandlerTrait<A, TellMessage<I>, Result<(), TellHandlerError<E>>> for BaseHandler
 where
     A: TellHandlerTrait<I, E> + Sync + Send + 'static,
     I: Send + 'static,
     E: Display + Debug,
 {
-    async fn _handle(actor: &A, msg: TellMessage<I>) -> Result<(), E> {
-        actor.handle(msg.0).await
+    async fn _handle(actor: &A, msg: TellMessage<I>) -> Result<(), TellHandlerError<E>> {
+        actor.handle(msg.0).await.map_err(TellHandlerError)
     }
 }
 
