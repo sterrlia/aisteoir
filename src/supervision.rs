@@ -28,18 +28,18 @@ pub trait ActorTrait<E>
 where
     E: Send + Display + Debug + 'static,
 {
-    async fn init(&self) -> Result<(), ActorInitFailure> {
+    async fn init(&mut self) -> Result<(), ActorInitFailure> {
         Ok(())
     }
 
     #[allow(unused_variables, unused_mut)]
-    async fn on_stop(&self) -> Result<(), ActorStopFailure> {
+    async fn on_stop(&mut self) -> Result<(), ActorStopFailure> {
         Ok(())
     }
 
     #[allow(unused_variables, unused_mut)]
     async fn on_error(
-        &self,
+        &mut self,
         error: BaseHandlerError<E>,
     ) -> Result<Option<CommandMessage>, ActorHandleErrorFailure> {
         Ok(Some(CommandMessage::StopActor))
@@ -60,7 +60,7 @@ where
 }
 
 async fn run_actor_loop<A, M, E>(
-    actor: A,
+    mut actor: A,
     rx: async_channel::Receiver<ActorMessage<M>>,
 ) -> Result<(), ActorRuntimeError>
 where
@@ -73,7 +73,7 @@ where
     loop {
         let msg = rx.recv().await?;
 
-        let command_result = handle_message(&actor, msg).await?;
+        let command_result = handle_message(&mut actor, msg).await?;
 
         if let Some(command) = command_result {
             match command {
@@ -102,7 +102,7 @@ where
 }
 
 async fn handle_message<A, M, E>(
-    actor: &A,
+    actor: &mut A,
     msg: ActorMessage<M>,
 ) -> Result<Option<CommandMessage>, ActorHandleErrorFailure>
 where

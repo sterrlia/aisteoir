@@ -12,7 +12,7 @@ pub struct BaseHandler;
 #[doc(hidden)]
 #[async_trait]
 pub trait BaseHandlerTrait<A, M, R> {
-    async fn _handle(actor: &A, msg: M) -> R;
+    async fn _handle(actor: &mut A, msg: M) -> R;
 }
 
 #[async_trait]
@@ -24,7 +24,7 @@ where
     O: Send + Sync + 'static,
     E: Display + Debug,
 {
-    async fn _handle(actor: &A, msg: AskMessage<I, O>) -> Result<(), AskHandlerError<E>> {
+    async fn _handle(actor: &mut A, msg: AskMessage<I, O>) -> Result<(), AskHandlerError<E>> {
         let result = actor.handle(msg.request).await;
 
         match result {
@@ -48,7 +48,7 @@ where
     I: Send + 'static,
     E: Display + Debug,
 {
-    async fn _handle(actor: &A, msg: TellMessage<I>) -> Result<(), TellHandlerError<E>> {
+    async fn _handle(actor: &mut A, msg: TellMessage<I>) -> Result<(), TellHandlerError<E>> {
         actor.handle(msg.0).await.map_err(TellHandlerError)
     }
 }
@@ -60,7 +60,7 @@ where
     O: Send + 'static,
     E: Display + Debug,
 {
-    async fn handle(&self, msg: I) -> Result<O, E>;
+    async fn handle(&mut self, msg: I) -> Result<O, E>;
 }
 
 #[async_trait]
@@ -68,7 +68,7 @@ pub trait TellHandlerTrait<I, E>
 where
     I: Send + 'static,
 {
-    async fn handle(&self, msg: I) -> Result<(), E>;
+    async fn handle(&mut self, msg: I) -> Result<(), E>;
 }
 
 #[doc(hidden)]
@@ -77,5 +77,5 @@ pub trait ActorMessageHandlerTrait<M, E>
 where
     E: Display + Debug,
 {
-    async fn __handle(&self, msg: M) -> Result<(), BaseHandlerError<E>>;
+    async fn __handle(&mut self, msg: M) -> Result<(), BaseHandlerError<E>>;
 }

@@ -11,10 +11,9 @@ use ascolt::{
 use async_trait::async_trait;
 use derive_more::From;
 use thiserror::Error;
-use tokio::sync::Mutex;
 
 pub struct CalcActor {
-    state: Mutex<CalcActorState>,
+    state: CalcActorState,
 }
 
 #[derive(Default)]
@@ -48,16 +47,15 @@ fn some_function_that_returns_anyhow() -> anyhow::Result<()> {
 
 #[async_trait]
 impl ActorTrait<DefaultHandlerError> for CalcActor {
-    async fn init(&self) -> Result<(), ActorInitFailure> {
+    async fn init(&mut self) -> Result<(), ActorInitFailure> {
         some_function_that_returns_anyhow().map_err(AnyhowContainer::from)?;
 
-        let state = &mut self.state.lock().await;
-        state.number = 0;
+        self.state.number = 0;
 
         Ok(())
     }
 
-    async fn on_stop(&self) -> Result<(), ActorStopFailure> {
+    async fn on_stop(&mut self) -> Result<(), ActorStopFailure> {
         println!("Calc actor stopped");
 
         Ok(())
@@ -66,32 +64,27 @@ impl ActorTrait<DefaultHandlerError> for CalcActor {
 
 #[ask_handler]
 async fn handle(
-    self: &CalcActor,
+    self: &mut CalcActor,
     msg: GetNumberRequest,
 ) -> Result<GetNumberResponse, DefaultHandlerError> {
-    let state = self.state.lock().await;
-
-    Ok(GetNumberResponse(state.number))
+    Ok(GetNumberResponse(self.state.number))
 }
 
 #[tell_handler]
 async fn handle(
-    self: &CalcActor,
+    self: &mut CalcActor,
     state: &mut CalcActorState,
     msg: AddNumberRequest,
 ) -> Result<(), DefaultHandlerError> {
-    let state = &mut self.state.lock().await;
+    self.state.number += msg.0;
 
-    state.number += msg.0;
     Ok(())
 }
 
 #[async_trait]
 impl TellHandlerTrait<SubNumberRequest, DefaultHandlerError> for CalcActor {
-    async fn handle(&self, msg: SubNumberRequest) -> Result<(), DefaultHandlerError> {
-        let state = &mut self.state.lock().await;
-
-        state.number -= msg.0;
+    async fn handle(&mut self, msg: SubNumberRequest) -> Result<(), DefaultHandlerError> {
+        self.state.number -= msg.0;
         Ok(())
     }
 }
@@ -120,7 +113,7 @@ impl AskHandlerTrait<ProxyActorCalcRequest, ProxyActorCalcResponse, DefaultHandl
     for ProxyActor
 {
     async fn handle(
-        &self,
+        &mut self,
         msg: ProxyActorCalcRequest,
     ) -> Result<ProxyActorCalcResponse, DefaultHandlerError> {
         self.tx.tell(AddNumberRequest(msg.0)).await?;
@@ -141,7 +134,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .init();
 
     let calc_actor = CalcActor {
-        state: Mutex::new(CalcActorState::default()),
+        state: CalcActorState::default(),
     };
     let (calc_actor_tx, calc_actor_rx) = ascolt::bounded_channel::<CalcActorMessage>(100);
     let (calc_actor_message_tx, calc_actor_command_tx) = calc_actor_tx.split();

@@ -22,7 +22,7 @@ macro_rules! match_messages {
 
         #[async_trait::async_trait]
         impl $crate::handler::ActorMessageHandlerTrait<$msg_enum, $error> for $actor {
-            async fn __handle(&self, msg: $msg_enum) -> Result<(), $crate::error::handler::BaseHandlerError<$error>> {
+            async fn __handle(&mut self, msg: $msg_enum) -> Result<(), $crate::error::handler::BaseHandlerError<$error>> {
                 use $crate::handler::BaseHandlerTrait;
 
                 match msg {
