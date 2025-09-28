@@ -1,6 +1,6 @@
 [package]
 name = "ascolt"
-version = "0.1.9"
+version = "0.1.10"
 edition = "2024"
 authors = ["sterrlia <dev@sterrlia.com>"]
 description = "Async runtime-agnostic actor framework"
