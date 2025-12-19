@@ -21,21 +21,21 @@ license-file = "LICENSE"
 rust-version = "1.85.1"
 
 [dependencies]
-async-trait = "0.1.89"
-thiserror = "2.0.16"
-tracing = { version = "0.1.41", optional = true }
-async-channel = "2.5.0"
-oneshot = "0.1.11"
-derive_more = { version = "2.0.1", features = ["from"] }
-futures = "0.3.31"
-ascolt-macros = { version = "0.1.5", optional = true }
+async-trait = "^0.1.89"
+thiserror = "^2.0.16"
+tracing = { version = "^0.1.41", optional = true }
+async-channel = "^2.5.0"
+oneshot = "^0.1.11"
+derive_more = { version = "^2.0.1", features = ["from"] }
+futures = "^0.3.31"
+ascolt-macros = { version = "^0.1.5", optional = true }
 
 [dev-dependencies]
-anyhow = "1.0.99"
-derive_more = { version = "2.0.1", features = ["from"] }
-thiserror = "2.0.16"
-tokio = { version = "1.47.1", features = ["sync", "rt-multi-thread", "macros"] }
-tracing-subscriber = "0.3.20"
+anyhow = "^1.0.99"
+derive_more = { version = "^2.0.1", features = ["from"] }
+thiserror = "^2.0.16"
+tokio = { version = "^1.47.1", features = ["sync", "rt-multi-thread", "macros"] }
+tracing-subscriber = "^0.3.20"
 
 [features]
 default = ["tracing", "macros"]
