@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use ascolt::{Actor, ActorTrait, CommandMessage, ask_handler, tell_handler};
 use ascolt::{
     error::{
@@ -118,7 +120,9 @@ impl AskHandlerTrait<ProxyActorCalcRequest, ProxyActorCalcResponse, DefaultHandl
     ) -> Result<ProxyActorCalcResponse, DefaultHandlerError> {
         self.tx.tell(AddNumberRequest(msg.0)).await?;
 
-        self.tx.tell(AddNumberRequest(5)).await?;
+        self.tx
+            .tell_with_ttl(AddNumberRequest(5), Duration::from_secs(60))
+            .await?;
         self.tx.tell(SubNumberRequest(3)).await?;
 
         let result = self.tx.ask(GetNumberRequest).await?;

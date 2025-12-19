@@ -1,5 +1,8 @@
 use async_trait::async_trait;
-use std::fmt::{Debug, Display};
+use std::{
+    fmt::{Debug, Display},
+    time::{Duration, Instant},
+};
 
 use crate::{
     error::{
@@ -20,7 +23,11 @@ pub enum CommandMessage {
 #[doc(hidden)]
 pub enum ActorMessage<M> {
     CommandMessage(CommandMessage),
-    ActorMessage(M),
+    RegularMessage {
+        msg: M,
+        sent_at: Instant,
+        ttl: Option<Duration>,
+    },
 }
 
 #[async_trait]
@@ -110,12 +117,19 @@ where
     A: Send + Sync + ActorMessageHandlerTrait<M, E> + ActorTrait<E> + 'static,
     E: Send + Debug + Display + 'static,
 {
-    Ok(match msg {
+    let result = match msg {
         ActorMessage::CommandMessage(command) => Some(command),
 
-        ActorMessage::ActorMessage(actor_msg) => {
+        ActorMessage::RegularMessage { msg, sent_at, ttl } => {
+            if match ttl {
+                Some(ttl) => sent_at.elapsed() > ttl,
+                None => false,
+            } {
+                return Ok(None);
+            }
+
             let result = actor
-                .__handle(actor_msg)
+                .__handle(msg)
                 .await
                 .inspect_err(|err| log::error(format!("{err}")));
 
@@ -124,5 +138,7 @@ where
                 Err(err) => actor.on_error(err).await?,
             }
         }
-    })
+    };
+
+    Ok(result)
 }

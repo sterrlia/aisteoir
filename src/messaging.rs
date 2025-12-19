@@ -1,3 +1,5 @@
+use std::time::{Duration, Instant};
+
 use async_trait::async_trait;
 
 use crate::{
@@ -72,7 +74,15 @@ where
         I: Send,
         TellMessage<I>: MessageRequest<M>,
     {
-        send_tell(self, value).await
+        send_tell(self, value, None).await
+    }
+
+    pub async fn tell_with_ttl<I>(&self, value: I, ttl: Duration) -> Result<(), ReceiverClosedError>
+    where
+        I: Send,
+        TellMessage<I>: MessageRequest<M>,
+    {
+        send_tell(self, value, Some(ttl)).await
     }
 
     pub async fn ask<I, O>(&self, value: I) -> Result<O, AskError>
@@ -81,7 +91,7 @@ where
         AskMessage<I, O>: MessageRequest<M>,
         O: Send,
     {
-        send_ask(self, value).await
+        send_ask(self, value, None).await
     }
 }
 
@@ -94,7 +104,15 @@ where
         I: Send,
         TellMessage<I>: MessageRequest<M>,
     {
-        send_tell(self, value).await
+        send_tell(self, value, None).await
+    }
+
+    pub async fn tell_with_ttl<I>(&self, value: I, ttl: Duration) -> Result<(), ReceiverClosedError>
+    where
+        I: Send,
+        TellMessage<I>: MessageRequest<M>,
+    {
+        send_tell(self, value, Some(ttl)).await
     }
 
     pub async fn ask<I, O>(&self, value: I) -> Result<O, AskError>
@@ -103,7 +121,7 @@ where
         AskMessage<I, O>: MessageRequest<M>,
         O: Send,
     {
-        send_ask(self, value).await
+        send_ask(self, value, None).await
     }
 }
 
@@ -128,7 +146,11 @@ where
     Ok(())
 }
 
-async fn send_tell<SE, M, I>(tx: &SE, value: I) -> Result<(), ReceiverClosedError>
+async fn send_tell<SE, M, I>(
+    tx: &SE,
+    value: I,
+    ttl: Option<Duration>,
+) -> Result<(), ReceiverClosedError>
 where
     SE: Send + Sync + AbstractSenderTrait<M>,
     I: Send,
@@ -137,12 +159,17 @@ where
 {
     let tell_message = TellMessage(value);
     let case = TellMessage::get_case();
-    let msg = ActorMessage::ActorMessage(case(tell_message));
+    let sent_at = Instant::now();
+    let msg = ActorMessage::RegularMessage {
+        msg: case(tell_message),
+        sent_at,
+        ttl,
+    };
 
     tx.send(msg).await
 }
 
-async fn send_ask<SE, M, I, O>(tx: &SE, value: I) -> Result<O, AskError>
+async fn send_ask<SE, M, I, O>(tx: &SE, value: I, ttl: Option<Duration>) -> Result<O, AskError>
 where
     SE: Send + Sync + AbstractSenderTrait<M>,
     I: Send,
@@ -156,7 +183,12 @@ where
         tx: result_tx,
     };
     let case = AskMessage::get_case();
-    let msg = ActorMessage::ActorMessage(case(call_message));
+    let sent_at = Instant::now();
+    let msg = ActorMessage::RegularMessage {
+        msg: case(call_message),
+        sent_at,
+        ttl,
+    };
 
     tx.send(msg).await.map_err(AskError::ReceiverClosed)?;
 
