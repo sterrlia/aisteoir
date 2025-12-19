@@ -37,7 +37,7 @@ jobs:
           cargo +nightly udeps --version --offline
 
       - name: Check unused dependencies
-        run: cargo +nightly udeps --offline --locked --all-targets --all-features
+        run: cargo +nightly udeps --locked --all-targets --all-features
 
       - name: Install cargo-deny
         run: |
