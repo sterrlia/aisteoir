@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cargo-bins/cargo-binstall@main
+
+      - name: Install Clippy and Rustfmt
+        run: |
+          rustup component add clippy
+          rustup component add rustfmt
+
+      - name: Lint
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Check format
+        run: cargo fmt --check
+
+      - name: Check
+        run: cargo check --verbose --all-features --all-targets
+
+      - name: Install cargo-udeps
+        run: |
+          cargo binstall cargo-udeps --locked --no-track  --disable-telemetry --no-confirm
+          cargo +nightly udeps --version --offline
+
+      - name: Check unused dependencies
+        run: cargo +nightly udeps --offline --locked --all-targets --all-features
+
+      - name: Install cargo-deny
+        run: |
+          cargo binstall cargo-deny --locked --no-track  --disable-telemetry --no-confirm
+          cargo deny --version
+
+      - name: Check licenses and sources
+        run: cargo deny --all-features --locked check bans licenses sources
+
+      - name: Install cargo-geiger
+        run: |
+          cargo binstall cargo-geiger --locked --no-track  --disable-telemetry --no-confirm
+          cargo geiger --version
+
+      - name: Check unsafe code
+        run: cargo geiger --all-features --all-targets --forbid-only --locked --offline
+
+      - name: Build
+        run: cargo build --verbose
+
+      - name: Install cargo-audit
+        run: |
+          cargo binstall cargo-audit --locked --no-track  --disable-telemetry --no-confirm
+          cargo audit --version
+
+      - name: Cargo audit
+        run: cargo --locked audit --deny unmaintained --deny yanked
+
+      - name: Run tests
+        run: cargo test --verbose
+
+      - name: Install cargo-msrv
+        run: |
+          cargo binstall cargo-msrv --locked --no-track  --disable-telemetry --no-confirm
+          cargo msrv --version
+
+      - name: Verify rust version
+        run: cargo --locked msrv verify --output-format json --all-features

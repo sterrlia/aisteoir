@@ -27,7 +27,6 @@ tracing = { version = "^0.1.41", optional = true }
 async-channel = "^2.5.0"
 oneshot = "^0.1.11"
 derive_more = { version = "^2.0.1", features = ["from"] }
-futures = "^0.3.31"
 ascolt-macros = { version = "^0.1.5", optional = true }
 
 [dev-dependencies]
